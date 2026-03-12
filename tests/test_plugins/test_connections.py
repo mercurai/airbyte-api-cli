@@ -139,11 +139,11 @@ class TestConnectionsCommands(unittest.TestCase):
             )
         else:
             client.request.return_value = {}
-        return {"client": client, "format": "json"}
+        return {"get_client": lambda: client, "_client": client, "format": "json"}
 
     def test_list_command_dispatches(self):
         ctx = self._make_context()
-        ctx["client"].request.return_value = {"data": []}
+        ctx["_client"].request.return_value = {"data": []}
         import argparse
         from airbyte_cli.plugins.connections.commands import _handle
 
@@ -158,7 +158,7 @@ class TestConnectionsCommands(unittest.TestCase):
 
     def test_get_command_dispatches(self):
         ctx = self._make_context()
-        ctx["client"].request.return_value = {"connectionId": "c1"}
+        ctx["_client"].request.return_value = {"connectionId": "c1"}
         import argparse
         from airbyte_cli.plugins.connections.commands import _handle
 
@@ -168,7 +168,7 @@ class TestConnectionsCommands(unittest.TestCase):
 
     def test_create_command_dispatches(self):
         ctx = self._make_context()
-        ctx["client"].request.return_value = {"connectionId": "new"}
+        ctx["_client"].request.return_value = {"connectionId": "new"}
         import argparse
         from airbyte_cli.plugins.connections.commands import _handle
 
@@ -186,14 +186,14 @@ class TestConnectionsCommands(unittest.TestCase):
         )
         result = _handle(args, ctx)
         self.assertEqual(result, 0)
-        call_body = ctx["client"].request.call_args[1]["body"]
+        call_body = ctx["_client"].request.call_args[1]["body"]
         self.assertEqual(call_body["sourceId"], "src_1")
         self.assertEqual(call_body["destinationId"], "dst_1")
         self.assertEqual(call_body["name"], "My Conn")
 
     def test_create_with_schedule(self):
         ctx = self._make_context()
-        ctx["client"].request.return_value = {"connectionId": "new"}
+        ctx["_client"].request.return_value = {"connectionId": "new"}
         import argparse
         from airbyte_cli.plugins.connections.commands import _handle
 
@@ -210,12 +210,12 @@ class TestConnectionsCommands(unittest.TestCase):
             streams=None,
         )
         _handle(args, ctx)
-        body = ctx["client"].request.call_args[1]["body"]
+        body = ctx["_client"].request.call_args[1]["body"]
         self.assertEqual(body["schedule"]["scheduleType"], "cron")
 
     def test_update_command_dispatches(self):
         ctx = self._make_context()
-        ctx["client"].request.return_value = {"connectionId": "c1"}
+        ctx["_client"].request.return_value = {"connectionId": "c1"}
         import argparse
         from airbyte_cli.plugins.connections.commands import _handle
 
@@ -229,7 +229,7 @@ class TestConnectionsCommands(unittest.TestCase):
 
     def test_delete_command_dispatches(self):
         ctx = self._make_context()
-        ctx["client"].request.return_value = {}
+        ctx["_client"].request.return_value = {}
         import argparse
         from airbyte_cli.plugins.connections.commands import _handle
 

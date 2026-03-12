@@ -60,7 +60,7 @@ def register_commands(
 def _handle(args: argparse.Namespace, context: dict[str, Any]) -> int:
     from .api import ConnectionsApi
 
-    api = ConnectionsApi(context["client"])
+    api = ConnectionsApi(context["get_client"]())
     fmt = context.get("format", "json")
 
     if args.action == "list":

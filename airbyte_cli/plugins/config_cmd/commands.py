@@ -25,6 +25,8 @@ def register_commands(
     set_cmd.add_argument("--base-url", dest="base_url", help="Airbyte API base URL")
     set_cmd.add_argument("--client-id", dest="client_id", help="OAuth client ID")
     set_cmd.add_argument("--client-secret", dest="client_secret", help="OAuth client secret")
+    set_cmd.add_argument("--username", dest="username", help="Basic auth username")
+    set_cmd.add_argument("--password", dest="password", help="Basic auth password")
     set_cmd.add_argument(
         "--workspace-id", dest="default_workspace_id", help="Default workspace ID"
     )
@@ -62,6 +64,10 @@ def _handle(args: argparse.Namespace, context: dict[str, Any]) -> int:
             updates["client_id"] = args.client_id
         if args.client_secret:
             updates["client_secret"] = args.client_secret
+        if getattr(args, "username", None):
+            updates["username"] = args.username
+        if getattr(args, "password", None):
+            updates["password"] = args.password
         if args.default_workspace_id:
             updates["default_workspace_id"] = args.default_workspace_id
         if args.default_format:

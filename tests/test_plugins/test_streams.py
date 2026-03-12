@@ -18,7 +18,8 @@ def _make_client(return_value=None):
 
 
 def _make_context(client=None):
-    return {"client": client or _make_client()}
+    c = client or _make_client()
+    return {"get_client": lambda: c, "format": "json"}
 
 
 class TestStreamsApi(unittest.TestCase):
@@ -66,11 +67,6 @@ class TestStreamsCommands(unittest.TestCase):
         self.assertEqual(code, 0)
         call_args = mock_out.call_args
         self.assertEqual(call_args[0][0], payload)
-
-    def test_no_client_returns_3(self):
-        args = argparse.Namespace(streams_action="get", format="json", stream_id="s1")
-        code = _handle(args, {})
-        self.assertEqual(code, 3)
 
     def test_no_action_returns_1(self):
         code, _ = self._run(None)

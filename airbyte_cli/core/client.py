@@ -21,7 +21,11 @@ class HttpClient:
 
     def __init__(self, base_url: str, token: str, timeout: int = 30) -> None:
         self.base_url = base_url.rstrip("/")
-        self.token = token
+        # token may be a raw token (Bearer assumed) or a full header value
+        if token.startswith(("Bearer ", "Basic ")):
+            self._auth_header = token
+        else:
+            self._auth_header = f"Bearer {token}"
         self.timeout = timeout
 
     def request(
@@ -76,7 +80,10 @@ class HttpClient:
                 raw = resp.read().decode("utf-8")
                 if not raw:
                     return {}
-                return json.loads(raw)
+                try:
+                    return json.loads(raw)
+                except json.JSONDecodeError:
+                    return {"message": raw.strip()}
         except urllib.error.HTTPError as exc:
             raw = exc.read().decode("utf-8") if exc.fp else ""
             try:
@@ -114,7 +121,7 @@ class HttpClient:
 
     def _build_headers(self, has_body: bool) -> dict[str, str]:
         headers: dict[str, str] = {
-            "Authorization": f"Bearer {self.token}",
+            "Authorization": self._auth_header,
             "Accept": "application/json",
             "User-Agent": _USER_AGENT,
         }

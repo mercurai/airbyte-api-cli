@@ -62,7 +62,7 @@ def register_commands(
 def _handle(args: argparse.Namespace, context: dict[str, Any]) -> int:
     from .api import JobsApi
 
-    api = JobsApi(context["client"])
+    api = JobsApi(context["get_client"]())
     fmt = context.get("format", "json")
 
     if args.action == "list":

@@ -20,6 +20,8 @@ class Config:
     token: str = ""
     client_id: str = ""
     client_secret: str = ""
+    username: str = ""
+    password: str = ""
     default_workspace_id: str = ""
     default_format: str = "json"
     timeout: int = 30
@@ -43,6 +45,8 @@ class Config:
             "token": "AIRBYTE_TOKEN",
             "client_id": "AIRBYTE_CLIENT_ID",
             "client_secret": "AIRBYTE_CLIENT_SECRET",
+            "username": "AIRBYTE_USERNAME",
+            "password": "AIRBYTE_PASSWORD",
             "default_workspace_id": "AIRBYTE_WORKSPACE_ID",
         }
         env_vals: dict[str, Any] = {}
@@ -59,6 +63,8 @@ class Config:
             token=merged.get("token", ""),
             client_id=merged.get("client_id", ""),
             client_secret=merged.get("client_secret", ""),
+            username=merged.get("username", ""),
+            password=merged.get("password", ""),
             default_workspace_id=merged.get("default_workspace_id", ""),
             default_format=merged.get("default_format", "json"),
             timeout=int(merged.get("timeout", 30)),
@@ -83,6 +89,8 @@ class Config:
             "base_url": self.base_url,
             "client_id": self.client_id,
             "client_secret": self.client_secret,
+            "username": self.username,
+            "password": self.password,
             "default_workspace_id": self.default_workspace_id,
             "default_format": self.default_format,
         }
@@ -94,6 +102,8 @@ class Config:
             "base_url": self.base_url,
             "client_id": self.client_id,
             "client_secret": "***" if self.client_secret else "",
+            "username": self.username,
+            "password": "***" if self.password else "",
             "default_workspace_id": self.default_workspace_id,
             "default_format": self.default_format,
             "timeout": self.timeout,

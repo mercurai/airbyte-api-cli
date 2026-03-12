@@ -19,7 +19,8 @@ def _make_client(return_value=None):
 
 
 def _make_context(client=None):
-    return {"client": client or _make_client()}
+    c = client or _make_client()
+    return {"get_client": lambda: c, "format": "json"}
 
 
 class TestPermissionModel(unittest.TestCase):
@@ -181,11 +182,6 @@ class TestPermissionsCommands(unittest.TestCase):
         code, mock_out = self._run("delete", {"permission_id": "p1"}, client=client)
         self.assertEqual(code, 0)
         mock_out.assert_called_once()
-
-    def test_no_client_returns_3(self):
-        args = argparse.Namespace(permissions_action="list", format="json")
-        code = _handle(args, {})
-        self.assertEqual(code, 3)
 
     def test_no_action_returns_1(self):
         code, _ = self._run(None)

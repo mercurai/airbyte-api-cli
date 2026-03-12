@@ -23,6 +23,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--base-url", dest="base_url", help="Airbyte API base URL")
     parser.add_argument("--token", dest="token", help="API bearer token")
+    parser.add_argument("--username", dest="username", help="Basic auth username")
+    parser.add_argument("--password", dest="password", help="Basic auth password")
     parser.add_argument(
         "--format",
         dest="format",
@@ -46,6 +48,10 @@ def _load_config(args: argparse.Namespace, config_dir: Path) -> Config:
         cli_overrides["base_url"] = args.base_url
     if getattr(args, "token", None):
         cli_overrides["token"] = args.token
+    if getattr(args, "username", None):
+        cli_overrides["username"] = args.username
+    if getattr(args, "password", None):
+        cli_overrides["password"] = args.password
     if getattr(args, "format", None):
         cli_overrides["default_format"] = args.format
     return Config.load(config_dir=config_dir, cli_overrides=cli_overrides)
@@ -80,6 +86,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     full_parser.add_argument("--base-url", dest="base_url", help="Airbyte API base URL")
     full_parser.add_argument("--token", dest="token", help="API bearer token")
+    full_parser.add_argument("--username", dest="username", help="Basic auth username")
+    full_parser.add_argument("--password", dest="password", help="Basic auth password")
     full_parser.add_argument(
         "--format",
         dest="format",

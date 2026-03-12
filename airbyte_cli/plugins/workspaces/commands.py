@@ -60,12 +60,8 @@ def register_commands(
 
 
 def _handle(args: argparse.Namespace, context: dict[str, Any]) -> int:
-    client = context.get("client")
-    if client is None:
-        error("config", "No API client configured")
-        return 3
-
-    fmt = getattr(args, "format", "json")
+    client = context["get_client"]()
+    fmt = context.get("format", "json")
     action = args.workspaces_action
 
     if action == "list":

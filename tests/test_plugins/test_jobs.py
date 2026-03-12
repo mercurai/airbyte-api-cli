@@ -130,11 +130,11 @@ class TestJobsCommands(unittest.TestCase):
     def _make_context(self):
         client = MagicMock(spec=HttpClient)
         client.request.return_value = {}
-        return {"client": client, "format": "json"}
+        return {"get_client": lambda: client, "_client": client, "format": "json"}
 
     def test_list_command_dispatches(self):
         ctx = self._make_context()
-        ctx["client"].request.return_value = {"data": []}
+        ctx["_client"].request.return_value = {"data": []}
         import argparse
         from airbyte_cli.plugins.jobs.commands import _handle
 
@@ -153,7 +153,7 @@ class TestJobsCommands(unittest.TestCase):
 
     def test_list_with_filters(self):
         ctx = self._make_context()
-        ctx["client"].request.return_value = {"data": []}
+        ctx["_client"].request.return_value = {"data": []}
         import argparse
         from airbyte_cli.plugins.jobs.commands import _handle
 
@@ -168,7 +168,7 @@ class TestJobsCommands(unittest.TestCase):
             offset=5,
         )
         _handle(args, ctx)
-        call_params = ctx["client"].request.call_args[1]["params"]
+        call_params = ctx["_client"].request.call_args[1]["params"]
         self.assertEqual(call_params["connectionId"], "conn_1")
         self.assertEqual(call_params["status"], "running")
         self.assertEqual(call_params["jobType"], "sync")
@@ -176,7 +176,7 @@ class TestJobsCommands(unittest.TestCase):
 
     def test_trigger_command_dispatches(self):
         ctx = self._make_context()
-        ctx["client"].request.return_value = {"jobId": 1}
+        ctx["_client"].request.return_value = {"jobId": 1}
         import argparse
         from airbyte_cli.plugins.jobs.commands import _handle
 
@@ -187,13 +187,13 @@ class TestJobsCommands(unittest.TestCase):
         )
         result = _handle(args, ctx)
         self.assertEqual(result, 0)
-        call_body = ctx["client"].request.call_args[1]["body"]
+        call_body = ctx["_client"].request.call_args[1]["body"]
         self.assertEqual(call_body["connectionId"], "conn_1")
         self.assertEqual(call_body["jobType"], "sync")
 
     def test_get_command_dispatches(self):
         ctx = self._make_context()
-        ctx["client"].request.return_value = {"jobId": 5}
+        ctx["_client"].request.return_value = {"jobId": 5}
         import argparse
         from airbyte_cli.plugins.jobs.commands import _handle
 
@@ -203,14 +203,14 @@ class TestJobsCommands(unittest.TestCase):
 
     def test_cancel_command_dispatches(self):
         ctx = self._make_context()
-        ctx["client"].request.return_value = {}
+        ctx["_client"].request.return_value = {}
         import argparse
         from airbyte_cli.plugins.jobs.commands import _handle
 
         args = argparse.Namespace(action="cancel", job_id="5")
         result = _handle(args, ctx)
         self.assertEqual(result, 0)
-        ctx["client"].request.assert_called_once_with("DELETE", "jobs/5")
+        ctx["_client"].request.assert_called_once_with("DELETE", "jobs/5")
 
     def test_unknown_action_returns_error(self):
         import argparse
@@ -223,7 +223,7 @@ class TestJobsCommands(unittest.TestCase):
 
     def test_list_none_filters_stripped(self):
         ctx = self._make_context()
-        ctx["client"].request.return_value = {"data": []}
+        ctx["_client"].request.return_value = {"data": []}
         import argparse
         from airbyte_cli.plugins.jobs.commands import _handle
 
@@ -238,7 +238,7 @@ class TestJobsCommands(unittest.TestCase):
             offset=0,
         )
         _handle(args, ctx)
-        call_params = ctx["client"].request.call_args[1]["params"]
+        call_params = ctx["_client"].request.call_args[1]["params"]
         self.assertNotIn("connectionId", call_params)
         self.assertNotIn("status", call_params)
 

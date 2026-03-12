@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import json
 import time
 import urllib.error
@@ -29,10 +30,20 @@ class TokenManager:
         self._token_path = self._config_dir / _TOKEN_FILE
 
     def get_token(self) -> str:
-        """Return a valid access token, from cache or by acquiring a new one."""
-        # Direct token takes priority — skip client_credentials flow
+        """Return a valid auth header value, from cache or by acquiring a new one.
+
+        Priority: direct token > basic auth > cached OAuth > client_credentials flow.
+        """
+        # Direct token takes priority — skip everything else
         if self._config.token:
             return self._config.token
+
+        # Basic auth — return full header value
+        if self._config.username and self._config.password:
+            creds = base64.b64encode(
+                f"{self._config.username}:{self._config.password}".encode()
+            ).decode()
+            return f"Basic {creds}"
 
         cached = self._load_cached_token()
         if cached:
@@ -44,6 +55,8 @@ class TokenManager:
         """Force token refresh regardless of cache state."""
         if self._config.token:
             return self._config.token
+        if self._config.username and self._config.password:
+            return self.get_token()
         return self._acquire_token()
 
     def _load_cached_token(self) -> str | None:
@@ -65,7 +78,8 @@ class TokenManager:
         if not self._config.client_id or not self._config.client_secret:
             raise ConfigError(
                 "No token or client credentials configured. "
-                "Set AIRBYTE_TOKEN or AIRBYTE_CLIENT_ID + AIRBYTE_CLIENT_SECRET."
+                "Set AIRBYTE_TOKEN, AIRBYTE_USERNAME + AIRBYTE_PASSWORD, "
+                "or AIRBYTE_CLIENT_ID + AIRBYTE_CLIENT_SECRET."
             )
         if not self._config.base_url:
             raise ConfigError("base_url is not configured.")

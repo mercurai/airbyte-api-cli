@@ -19,7 +19,8 @@ def _make_client(return_value=None):
 
 
 def _make_context(client=None):
-    return {"client": client or _make_client()}
+    c = client or _make_client()
+    return {"get_client": lambda: c, "format": "json"}
 
 
 class TestWorkspaceModel(unittest.TestCase):
@@ -190,11 +191,6 @@ class TestWorkspacesCommands(unittest.TestCase):
             code = _handle(args, ctx)
         self.assertEqual(code, 1)
         mock_err.assert_called_once()
-
-    def test_no_client_returns_3(self):
-        args = argparse.Namespace(workspaces_action="list", format="json")
-        code = _handle(args, {})
-        self.assertEqual(code, 3)
 
     def test_no_action_returns_1(self):
         code, _ = self._run(None)
