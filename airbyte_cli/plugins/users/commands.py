@@ -24,6 +24,7 @@ def register_commands(
     )
     list_cmd.add_argument("--limit", type=int, default=20)
     list_cmd.add_argument("--offset", type=int, default=0)
+    list_cmd.add_argument("--all", action="store_true", dest="fetch_all", help="Fetch all pages")
 
     parser.set_defaults(handler=_handle)
 
@@ -37,12 +38,17 @@ def _handle(args: argparse.Namespace, context: dict[str, Any]) -> int:
     fmt = context.get("format", "json")
 
     if args.action == "list":
-        result = api.list(
-            organization_id=args.organization_id,
-            limit=args.limit,
-            offset=args.offset,
-        )
-        output(result.data, fmt)
+        if getattr(args, "fetch_all", False):
+            from airbyte_cli.core.utils import paginate_all
+            data = paginate_all(api.list, limit=args.limit, organization_id=args.organization_id)
+            output(data, fmt)
+        else:
+            result = api.list(
+                organization_id=args.organization_id,
+                limit=args.limit,
+                offset=args.offset,
+            )
+            output(result.data, fmt)
 
     else:
         error("usage", "No action specified. Use --help.")

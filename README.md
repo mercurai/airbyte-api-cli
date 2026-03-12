@@ -346,7 +346,12 @@ python -m airbyte_cli jobs trigger --connection-id <CONN_ID> --type sync
 
 # Cancel a running job
 python -m airbyte_cli jobs cancel --id <JOB_ID>
+
+# Wait for a job to complete (polls every 15s by default)
+python -m airbyte_cli jobs wait --id <JOB_ID> [--interval 15] [--timeout 0]
 ```
+
+`jobs wait` polls until the job reaches a terminal state (`succeeded`, `failed`, `cancelled`). Progress is printed to stderr; the final job JSON goes to stdout. Exit code 0 = succeeded, 1 = failed/cancelled/timeout.
 
 **Job types:**
 
@@ -565,30 +570,17 @@ File references are relative to the current working directory.
 
 ## Pagination
 
-List commands return one page by default (20 records). Use `--limit` and `--offset` to paginate:
+List commands return one page by default (20 records). Use `--limit` and `--offset` to paginate manually, or `--all` to fetch everything automatically:
 
 ```bash
-# First page
+# Single page
 python -m airbyte_cli sources list --limit 50 --offset 0
 
-# Second page
-python -m airbyte_cli sources list --limit 50 --offset 50
+# Fetch all records (auto-paginates)
+python -m airbyte_cli sources list --all
 ```
 
-`--limit` accepts values from 1 to 100. The response includes `next` and `previous` cursor URLs when more pages are available.
-
-**Shell loop for all pages:**
-
-```bash
-OFFSET=0; LIMIT=100
-while true; do
-  RESULT=$(python -m airbyte_cli sources list --limit $LIMIT --offset $OFFSET)
-  echo "$RESULT"
-  COUNT=$(echo "$RESULT" | python -c "import sys,json; print(len(json.load(sys.stdin)))" 2>/dev/null || echo 0)
-  [ "$COUNT" -lt "$LIMIT" ] && break
-  OFFSET=$((OFFSET + LIMIT))
-done
-```
+`--all` is available on all list commands that support pagination (sources, destinations, connections, jobs, tags, applications, organizations, users). It fetches pages of `--limit` size (default 20) until all records are returned.
 
 ---
 
@@ -664,7 +656,7 @@ airbyte-api-cli/
 │       ├── applications/
 │       ├── health/
 │       └── config_cmd/
-├── tests/                       # 323 unit tests (unittest)
+├── tests/                       # 328 unit tests (unittest)
 ├── .claude/                     # Claude Code agent + skills
 │   ├── agents/
 │   │   └── airbyte-manager.md
@@ -761,21 +753,18 @@ python -m unittest tests.test_plugins.test_sources.TestSourcesApi.test_list_retu
 ### Monitor a sync to completion
 
 ```bash
-# Trigger sync
+# Trigger sync and wait for it to finish
 JOB_JSON=$(python -m airbyte_cli jobs trigger --connection-id <CONN_ID> --type sync)
 JOB_ID=$(echo "$JOB_JSON" | python -c "import sys,json; print(json.load(sys.stdin)['jobId'])")
 
-# Poll until done
-while true; do
-  STATUS=$(python -m airbyte_cli jobs get --id "$JOB_ID" | \
-    python -c "import sys,json; print(json.load(sys.stdin).get('status','unknown'))")
-  echo "Job $JOB_ID: $STATUS"
-  case "$STATUS" in
-    succeeded|failed|cancelled) break ;;
-  esac
-  sleep 15
-done
+# Wait for terminal state (polls every 15s, prints progress to stderr)
+python -m airbyte_cli jobs wait --id "$JOB_ID"
+
+# Or with custom interval and timeout
+python -m airbyte_cli jobs wait --id "$JOB_ID" --interval 10 --timeout 3600
 ```
+
+`jobs wait` exits with code 0 on success, 1 on failure/cancellation/timeout. The final job state is printed to stdout as JSON.
 
 ### Troubleshoot a failed sync
 

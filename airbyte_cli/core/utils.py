@@ -39,3 +39,25 @@ def resolve_json_arg(value: str) -> dict:
 def strip_none(d: dict) -> dict:
     """Return a copy of dict with None values removed."""
     return {k: v for k, v in d.items() if v is not None}
+
+
+def paginate_all(list_fn, limit=100, **kwargs):
+    """Auto-paginate through all pages of a list endpoint.
+
+    Args:
+        list_fn: A callable that accepts limit and offset kwargs and returns an ApiResponse.
+        limit: Page size per request.
+        **kwargs: Additional kwargs passed to list_fn.
+
+    Returns:
+        Combined list of all records across all pages.
+    """
+    all_data = []
+    offset = 0
+    while True:
+        result = list_fn(limit=limit, offset=offset, **kwargs)
+        all_data.extend(result.data)
+        if len(result.data) < limit:
+            break
+        offset += limit
+    return all_data

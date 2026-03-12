@@ -42,7 +42,7 @@ python -m airbyte_cli health
 - Use `--format table` for human-readable summaries, `--format compact` for terse output.
 - Use `--config @file.json` to pass large config payloads from a file instead of inline JSON.
 - Token auto-refreshes on 401 — no manual refresh needed.
-- Page through large result sets with `--limit` and `--offset` (public API resources only).
+- Use `--all` on list commands to auto-paginate through all results, or `--limit`/`--offset` for manual pagination.
 - Definition endpoints (source_definitions, destination_definitions, declarative_source_definitions)
   use the internal config API and do not support pagination.
 
@@ -150,7 +150,10 @@ python -m airbyte_cli jobs list [--connection-id CONN] [--limit N] [--offset N]
 python -m airbyte_cli jobs get --id <JOB_ID>
 python -m airbyte_cli jobs trigger --connection-id CONN --type {sync,reset,refresh,clear}
 python -m airbyte_cli jobs cancel --id <JOB_ID>
+python -m airbyte_cli jobs wait --id <JOB_ID> [--interval 15] [--timeout 0]
 ```
+
+`jobs wait` polls until terminal state (succeeded/failed/cancelled). Exit 0 = succeeded, 1 = failed/timeout.
 
 Job types:
 - `sync` — incremental or full refresh sync per stream config

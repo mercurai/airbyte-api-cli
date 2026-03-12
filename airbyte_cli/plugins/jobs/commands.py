@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+import sys
+import time
 from typing import Any
 
 from airbyte_cli.core.output import error, output
@@ -37,6 +39,7 @@ def register_commands(
     )
     list_cmd.add_argument("--limit", type=int, default=20)
     list_cmd.add_argument("--offset", type=int, default=0)
+    list_cmd.add_argument("--all", action="store_true", dest="fetch_all", help="Fetch all pages")
 
     # trigger
     trigger_cmd = sub.add_parser("trigger", help="Trigger a job")
@@ -56,6 +59,12 @@ def register_commands(
     cancel_cmd = sub.add_parser("cancel", help="Cancel a job")
     cancel_cmd.add_argument("--id", required=True, dest="job_id")
 
+    # wait
+    wait_cmd = sub.add_parser("wait", help="Wait for a job to reach a terminal state")
+    wait_cmd.add_argument("--id", required=True, dest="job_id")
+    wait_cmd.add_argument("--interval", type=int, default=15, help="Poll interval in seconds (default: 15)")
+    wait_cmd.add_argument("--timeout", type=int, default=0, help="Max wait time in seconds (0 = no timeout)")
+
     parser.set_defaults(handler=_handle)
 
 
@@ -66,17 +75,29 @@ def _handle(args: argparse.Namespace, context: dict[str, Any]) -> int:
     fmt = context.get("format", "json")
 
     if args.action == "list":
-        params = strip_none({
-            "connectionId": getattr(args, "connection_id", None),
-            "workspaceIds": getattr(args, "workspace_id", None),
-            "status": getattr(args, "status", None),
-            "jobType": getattr(args, "job_type", None),
-            "orderBy": getattr(args, "order_by", None),
-            "limit": args.limit,
-            "offset": args.offset,
-        })
-        result = api.list(**params)
-        output(result.data, fmt)
+        if getattr(args, "fetch_all", False):
+            from airbyte_cli.core.utils import paginate_all
+            extra = strip_none({
+                "connectionId": getattr(args, "connection_id", None),
+                "workspaceIds": getattr(args, "workspace_id", None),
+                "status": getattr(args, "status", None),
+                "jobType": getattr(args, "job_type", None),
+                "orderBy": getattr(args, "order_by", None),
+            })
+            data = paginate_all(api.list, limit=args.limit, **extra)
+            output(data, fmt)
+        else:
+            params = strip_none({
+                "connectionId": getattr(args, "connection_id", None),
+                "workspaceIds": getattr(args, "workspace_id", None),
+                "status": getattr(args, "status", None),
+                "jobType": getattr(args, "job_type", None),
+                "orderBy": getattr(args, "order_by", None),
+                "limit": args.limit,
+                "offset": args.offset,
+            })
+            result = api.list(**params)
+            output(result.data, fmt)
 
     elif args.action == "trigger":
         result = api.trigger(args.connection_id, args.job_type)
@@ -88,6 +109,22 @@ def _handle(args: argparse.Namespace, context: dict[str, Any]) -> int:
 
     elif args.action == "cancel":
         api.cancel(args.job_id)
+
+    elif args.action == "wait":
+        deadline = time.monotonic() + args.timeout if args.timeout > 0 else None
+        terminal = {"succeeded", "failed", "cancelled"}
+
+        while True:
+            result = api.get(args.job_id)
+            status = result.get("status", "unknown")
+            print(f"Job {args.job_id}: {status}", file=sys.stderr)
+            if status in terminal:
+                output(result, fmt)
+                return 0 if status == "succeeded" else 1
+            if deadline and time.monotonic() >= deadline:
+                error("timeout", f"Job {args.job_id} did not complete within {args.timeout}s (last status: {status})")
+                return 1
+            time.sleep(args.interval)
 
     else:
         error("usage", "No action specified. Use --help.")

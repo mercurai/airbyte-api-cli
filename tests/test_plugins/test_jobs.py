@@ -212,6 +212,72 @@ class TestJobsCommands(unittest.TestCase):
         self.assertEqual(result, 0)
         ctx["_client"].request.assert_called_once_with("DELETE", "jobs/5")
 
+    def test_wait_succeeds_immediately(self):
+        """Job already in terminal state returns immediately."""
+        ctx = self._make_context()
+        ctx["_client"].request.return_value = {"jobId": "5", "status": "succeeded"}
+        import argparse
+        from airbyte_cli.plugins.jobs.commands import _handle
+
+        args = argparse.Namespace(action="wait", job_id="5", interval=1, timeout=0)
+        result = _handle(args, ctx)
+        self.assertEqual(result, 0)
+        ctx["_client"].request.assert_called_once_with("GET", "jobs/5")
+
+    def test_wait_failed_returns_1(self):
+        """Failed job returns exit code 1."""
+        ctx = self._make_context()
+        ctx["_client"].request.return_value = {"jobId": "5", "status": "failed"}
+        import argparse
+        from airbyte_cli.plugins.jobs.commands import _handle
+
+        args = argparse.Namespace(action="wait", job_id="5", interval=1, timeout=0)
+        result = _handle(args, ctx)
+        self.assertEqual(result, 1)
+
+    def test_wait_cancelled_returns_1(self):
+        """Cancelled job returns exit code 1."""
+        ctx = self._make_context()
+        ctx["_client"].request.return_value = {"jobId": "5", "status": "cancelled"}
+        import argparse
+        from airbyte_cli.plugins.jobs.commands import _handle
+
+        args = argparse.Namespace(action="wait", job_id="5", interval=1, timeout=0)
+        result = _handle(args, ctx)
+        self.assertEqual(result, 1)
+
+    def test_wait_polls_until_terminal(self):
+        """Polls multiple times until job reaches terminal state."""
+        ctx = self._make_context()
+        ctx["_client"].request.side_effect = [
+            {"jobId": "5", "status": "running"},
+            {"jobId": "5", "status": "running"},
+            {"jobId": "5", "status": "succeeded"},
+        ]
+        import argparse
+        from unittest.mock import patch
+        from airbyte_cli.plugins.jobs.commands import _handle
+
+        args = argparse.Namespace(action="wait", job_id="5", interval=0, timeout=0)
+        with patch("time.sleep"):
+            result = _handle(args, ctx)
+        self.assertEqual(result, 0)
+        self.assertEqual(ctx["_client"].request.call_count, 3)
+
+    def test_wait_timeout(self):
+        """Times out if job doesn't reach terminal state."""
+        ctx = self._make_context()
+        ctx["_client"].request.return_value = {"jobId": "5", "status": "running"}
+        import argparse
+        from unittest.mock import patch
+        from airbyte_cli.plugins.jobs.commands import _handle
+
+        args = argparse.Namespace(action="wait", job_id="5", interval=0, timeout=1)
+        times = iter([100.0, 100.5, 101.5])
+        with patch("time.sleep"), patch("time.monotonic", side_effect=times):
+            result = _handle(args, ctx)
+        self.assertEqual(result, 1)
+
     def test_unknown_action_returns_error(self):
         import argparse
         from airbyte_cli.plugins.jobs.commands import _handle

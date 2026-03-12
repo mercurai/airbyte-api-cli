@@ -22,6 +22,7 @@ def register_commands(
     list_cmd.add_argument("--workspace-id", dest="workspace_id")
     list_cmd.add_argument("--limit", type=int, default=20)
     list_cmd.add_argument("--offset", type=int, default=0)
+    list_cmd.add_argument("--all", action="store_true", dest="fetch_all", help="Fetch all pages")
 
     # get
     get_cmd = sub.add_parser("get", help="Get connection details")
@@ -64,13 +65,19 @@ def _handle(args: argparse.Namespace, context: dict[str, Any]) -> int:
     fmt = context.get("format", "json")
 
     if args.action == "list":
-        params = strip_none({
-            "workspaceId": getattr(args, "workspace_id", None),
-            "limit": args.limit,
-            "offset": args.offset,
-        })
-        result = api.list(**params)
-        output(result.data, fmt)
+        if getattr(args, "fetch_all", False):
+            from airbyte_cli.core.utils import paginate_all
+            extra = strip_none({"workspaceId": getattr(args, "workspace_id", None)})
+            data = paginate_all(api.list, limit=args.limit, **extra)
+            output(data, fmt)
+        else:
+            params = strip_none({
+                "workspaceId": getattr(args, "workspace_id", None),
+                "limit": args.limit,
+                "offset": args.offset,
+            })
+            result = api.list(**params)
+            output(result.data, fmt)
 
     elif args.action == "get":
         result = api.get(args.connection_id)
