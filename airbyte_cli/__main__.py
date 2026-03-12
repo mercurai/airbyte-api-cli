@@ -16,10 +16,11 @@ from airbyte_cli.core.registry import Registry
 def build_parser() -> argparse.ArgumentParser:
     """Build the root argument parser with global flags only (no subparsers)."""
     parser = argparse.ArgumentParser(
-        prog="airbyte",
+        prog="airbyte-api-cli",
         description="Airbyte API CLI — manage self-hosted Airbyte via the REST API.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         add_help=False,  # We'll add help to the full parser
+        allow_abbrev=False,  # Prevent --config matching --config-dir
     )
     parser.add_argument("--base-url", dest="base_url", help="Airbyte API base URL")
     parser.add_argument("--token", dest="token", help="API bearer token")
@@ -77,12 +78,13 @@ def main(argv: list[str] | None = None) -> int:
 
     # Build the full parser with subcommands
     full_parser = argparse.ArgumentParser(
-        prog="airbyte",
+        prog="airbyte-api-cli",
         description="Airbyte API CLI — manage self-hosted Airbyte via the REST API.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
     full_parser.add_argument(
-        "--version", action="version", version=f"airbyte-cli {__version__}"
+        "--version", action="version", version=f"airbyte-api-cli {__version__}"
     )
     full_parser.add_argument("--base-url", dest="base_url", help="Airbyte API base URL")
     full_parser.add_argument("--token", dest="token", help="API bearer token")

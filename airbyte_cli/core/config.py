@@ -93,6 +93,7 @@ class Config:
             "password": self.password,
             "default_workspace_id": self.default_workspace_id,
             "default_format": self.default_format,
+            "timeout": self.timeout,
         }
         path.write_text(json.dumps(data, indent=2), encoding="utf-8")
 
