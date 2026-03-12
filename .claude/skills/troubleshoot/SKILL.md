@@ -1,11 +1,10 @@
 ---
 name: troubleshoot
 description: Diagnose and fix failed Airbyte syncs by inspecting jobs, connections, sources, and destinations
+disable-model-invocation: true
 ---
 
-# Skill: Troubleshoot Failed Syncs
-
-Trigger phrases: "sync failed", "why did sync fail", "debug sync", "diagnose"
+# Troubleshoot Failed Syncs
 
 ## Steps
 
@@ -101,4 +100,4 @@ To re-trigger a normal sync after fixing the underlying issue:
 python -m airbyte_cli jobs trigger --connection-id <connection-id> --type sync
 ```
 
-Use the sync-status skill to monitor the new job until it completes.
+Use /sync-status to monitor the new job until it completes.

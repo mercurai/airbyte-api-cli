@@ -1,17 +1,14 @@
 ---
 name: manage-destinations
-description: Guide the user through listing, creating, and verifying Airbyte destinations
+description: Guide through listing, creating, and verifying Airbyte destinations
+disable-model-invocation: true
 ---
 
-# Skill: Manage Destinations
-
-Trigger phrases: "add destination", "configure destination", "create destination", "list destinations"
+# Manage Destinations
 
 ## Steps
 
 ### 1. Check API health
-
-Before any destination operations, confirm the Airbyte API is reachable:
 
 ```bash
 python -m airbyte_cli health
@@ -22,8 +19,6 @@ and that credentials/base URL are configured correctly.
 
 ### 2. List workspaces
 
-Identify the workspace to operate in:
-
 ```bash
 python -m airbyte_cli workspaces list
 ```
@@ -32,10 +27,8 @@ Ask the user to confirm which workspace ID to use if more than one is returned.
 
 ### 3. List available destination definitions
 
-Show the user what destination types are available:
-
 ```bash
-python -m airbyte_cli destination_definitions list --limit 100
+python -m airbyte_cli destination_definitions list
 ```
 
 Ask the user to select the destination type (e.g., BigQuery, Snowflake, Postgres, S3)

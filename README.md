@@ -665,15 +665,16 @@ airbyte-api-cli/
 │       ├── health/
 │       └── config_cmd/
 ├── tests/                       # 323 unit tests (unittest)
-├── agent/                       # Claude Code agent + skills
-│   ├── airbyte-manager.md
+├── .claude/                     # Claude Code agent + skills
+│   ├── agents/
+│   │   └── airbyte-manager.md
 │   └── skills/
-│       ├── manage-sources.md
-│       ├── manage-destinations.md
-│       ├── manage-connections.md
-│       ├── sync-status.md
-│       ├── setup-connection.md
-│       └── troubleshoot.md
+│       ├── manage-sources/SKILL.md
+│       ├── manage-destinations/SKILL.md
+│       ├── manage-connections/SKILL.md
+│       ├── sync-status/SKILL.md
+│       ├── setup-connection/SKILL.md
+│       └── troubleshoot/SKILL.md
 └── README.md
 ```
 
@@ -703,11 +704,11 @@ No changes to the core framework are needed.
 
 ## Claude Code Agent & Skills
 
-The `agent/` directory contains artifacts for autonomous Airbyte management via [Claude Code](https://claude.ai/claude-code).
+The `.claude/` directory contains [Claude Code](https://claude.ai/claude-code) agent and skill definitions for autonomous Airbyte management. These follow the standard Claude Code directory layout and are automatically discovered by Claude Code.
 
 ### Agent: `airbyte-manager`
 
-A Claude Code agent definition (`agent/airbyte-manager.md`) that:
+A Claude Code [subagent](https://code.claude.com/docs/en/sub-agents) (`.claude/agents/airbyte-manager.md`) that:
 - Has full command reference for all 16 resources
 - Understands Airbyte concepts (workspaces, sources, destinations, connections, streams, jobs)
 - Executes multi-step workflows (pipeline setup, sync monitoring, troubleshooting)
@@ -715,14 +716,16 @@ A Claude Code agent definition (`agent/airbyte-manager.md`) that:
 
 ### Skills
 
-| Skill | Triggers | Purpose |
-|-------|----------|---------|
-| `manage-sources` | "add source", "configure source" | Guide through source creation with type selection and config |
-| `manage-destinations` | "add destination", "configure destination" | Guide through destination creation |
-| `manage-connections` | "connect", "wire up", "create pipeline" | Wire a source to a destination with schedule and stream config |
-| `sync-status` | "sync status", "job status", "check sync" | Check running/recent jobs, show success/failure details |
-| `setup-connection` | "set up airbyte", "full sync setup" | End-to-end: source + destination + connection + initial sync |
-| `troubleshoot` | "sync failed", "debug sync" | Diagnose failures, inspect configs, suggest fixes |
+[Skills](https://code.claude.com/docs/en/skills) are in `.claude/skills/<name>/SKILL.md`. Invoke them with `/skill-name`.
+
+| Skill | Slash command | Purpose |
+|-------|--------------|---------|
+| `manage-sources` | `/manage-sources` | Guide through source creation with type selection and config |
+| `manage-destinations` | `/manage-destinations` | Guide through destination creation |
+| `manage-connections` | `/manage-connections` | Wire a source to a destination with schedule and stream config |
+| `sync-status` | `/sync-status` | Check running/recent jobs, show success/failure details |
+| `setup-connection` | `/setup-connection` | End-to-end: source + destination + connection + initial sync |
+| `troubleshoot` | `/troubleshoot` | Diagnose failures, inspect configs, suggest fixes |
 
 ---
 

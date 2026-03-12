@@ -1,11 +1,10 @@
 ---
 name: sync-status
 description: Check the status of running and recent Airbyte sync jobs
+disable-model-invocation: true
 ---
 
-# Skill: Sync Status
-
-Trigger phrases: "sync status", "job status", "check sync", "list jobs"
+# Sync Status
 
 ## Steps
 
@@ -61,5 +60,5 @@ the status changes to `succeeded` or `failed`.
 
 ### 5. Handle failed jobs
 
-If any job has status `failed`, offer to run the troubleshoot skill to diagnose
+If any job has status `failed`, offer to run /troubleshoot to diagnose
 the root cause. The relevant connection ID and job ID should be passed to that skill.

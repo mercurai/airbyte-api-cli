@@ -1,17 +1,14 @@
 ---
 name: manage-sources
-description: Guide the user through listing, creating, and verifying Airbyte sources
+description: Guide through listing, creating, and verifying Airbyte sources
+disable-model-invocation: true
 ---
 
-# Skill: Manage Sources
-
-Trigger phrases: "add source", "configure source", "create source", "list sources"
+# Manage Sources
 
 ## Steps
 
 ### 1. Check API health
-
-Before any source operations, confirm the Airbyte API is reachable:
 
 ```bash
 python -m airbyte_cli health
@@ -22,8 +19,6 @@ and that credentials/base URL are configured correctly.
 
 ### 2. List workspaces
 
-Identify the workspace to operate in:
-
 ```bash
 python -m airbyte_cli workspaces list
 ```
@@ -32,10 +27,8 @@ Ask the user to confirm which workspace ID to use if more than one is returned.
 
 ### 3. List available source definitions
 
-Show the user what source types are available:
-
 ```bash
-python -m airbyte_cli source_definitions list --limit 100
+python -m airbyte_cli source_definitions list
 ```
 
 Ask the user to select the source type (e.g., Postgres, GitHub, Stripe) and note the

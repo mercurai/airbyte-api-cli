@@ -1,11 +1,7 @@
 ---
 name: airbyte-manager
-description: Manages self-hosted Airbyte deployments via the REST API CLI
-tools:
-  - Bash
-  - Read
-  - Grep
-  - Glob
+description: Manages self-hosted Airbyte deployments via the REST API CLI. Use when working with Airbyte sources, destinations, connections, syncs, or connector definitions.
+tools: Bash, Read, Grep, Glob
 ---
 
 # Airbyte Manager Agent
@@ -46,7 +42,9 @@ python -m airbyte_cli health
 - Use `--format table` for human-readable summaries, `--format compact` for terse output.
 - Use `--config @file.json` to pass large config payloads from a file instead of inline JSON.
 - Token auto-refreshes on 401 — no manual refresh needed.
-- Page through large result sets with `--limit` and `--offset`.
+- Page through large result sets with `--limit` and `--offset` (public API resources only).
+- Definition endpoints (source_definitions, destination_definitions, declarative_source_definitions)
+  use the internal config API and do not support pagination.
 
 ## Exit Codes
 
@@ -302,108 +300,3 @@ attached to an existing source definition. Workspace-scoped. Requires both
 
 **Application**: An OAuth2 machine credential. Use `applications token` to get a
 short-lived access token for non-interactive automation.
-
----
-
-## Multi-Step Workflows
-
-### 1. Full Pipeline Setup (source -> destination -> connection -> sync)
-
-```bash
-# 1. Pick a workspace (or create one)
-python -m airbyte_cli workspaces list --format table
-
-# 2. Find the source connector type
-python -m airbyte_cli source_definitions list | python -c "import sys,json; [print(d['sourceDefinitionId'], d['name']) for d in json.load(sys.stdin) if 'postgres' in d['name'].lower()]"
-
-# 3. Create the source
-python -m airbyte_cli sources create \
-  --name "prod-postgres" \
-  --workspace-id <WS_ID> \
-  --type <SOURCE_DEF_ID> \
-  --config @postgres-config.json
-
-# 4. Find the destination connector type
-python -m airbyte_cli destination_definitions list | python -c "import sys,json; [print(d['destinationDefinitionId'], d['name']) for d in json.load(sys.stdin) if 'snowflake' in d['name'].lower()]"
-
-# 5. Create the destination
-python -m airbyte_cli destinations create \
-  --name "snowflake-warehouse" \
-  --workspace-id <WS_ID> \
-  --type <DEST_DEF_ID> \
-  --config @snowflake-config.json
-
-# 6. Create the connection
-python -m airbyte_cli connections create \
-  --source-id <SOURCE_ID> \
-  --destination-id <DEST_ID> \
-  --name "postgres-to-snowflake" \
-  --schedule '{"scheduleType":"cron","cronExpression":"0 0 * * *"}'
-
-# 7. Trigger an initial sync
-python -m airbyte_cli jobs trigger --connection-id <CONN_ID> --type sync
-```
-
-### 2. Sync Monitoring (trigger -> poll until complete)
-
-```bash
-# Trigger a sync and capture the job ID
-JOB=$(python -m airbyte_cli jobs trigger --connection-id <CONN_ID> --type sync)
-JOB_ID=$(echo "$JOB" | python -c "import sys,json; print(json.load(sys.stdin)['jobId'])")
-
-# Poll for completion (repeat until status is succeeded/failed/cancelled)
-python -m airbyte_cli jobs get --id "$JOB_ID" --format compact
-
-# List recent jobs for a connection to see history
-python -m airbyte_cli jobs list --connection-id <CONN_ID> --limit 10 --format table
-```
-
-Poll the job every 10-30 seconds. Terminal states are `succeeded`, `failed`, `cancelled`.
-A job stuck in `pending` for more than a few minutes indicates an infrastructure problem.
-
-### 3. Troubleshooting (health -> recent jobs -> failed job details)
-
-```bash
-# Step 1: Check Airbyte is reachable and healthy
-python -m airbyte_cli health
-
-# Step 2: List recent jobs across all connections in a workspace
-python -m airbyte_cli jobs list --limit 20 --format table
-
-# Step 3: Inspect a specific failed job
-python -m airbyte_cli jobs get --id <JOB_ID>
-
-# Step 4: Check the connection config if the source/destination may have changed
-python -m airbyte_cli connections get --id <CONN_ID>
-python -m airbyte_cli sources get --id <SOURCE_ID>
-python -m airbyte_cli destinations get --id <DEST_ID>
-
-# Step 5: If credentials changed, update the source config
-python -m airbyte_cli sources update --id <SOURCE_ID> --config @updated-config.json
-
-# Step 6: Re-trigger the sync after fixing the root cause
-python -m airbyte_cli jobs trigger --connection-id <CONN_ID> --type sync
-```
-
-Common failure causes:
-- Auth error (exit 2): token expired, wrong username/password, or wrong client credentials
-- Network error (exit 4): Airbyte host unreachable, check `--base-url`
-- API error (exit 1) on create: invalid config schema for the connector type;
-  check the source/destination definition's expected config shape
-- Job failed (status=failed): connector-level error; read the job output for
-  stream-level failure details
-
-### 4. Pagination for Large Workspaces
-
-```bash
-# Page through all sources in a large workspace
-OFFSET=0
-LIMIT=100
-while true; do
-  RESULT=$(python -m airbyte_cli sources list --workspace-id <WS_ID> --limit $LIMIT --offset $OFFSET)
-  COUNT=$(echo "$RESULT" | python -c "import sys,json; d=json.load(sys.stdin); print(len(d.get('data', d) if isinstance(d, dict) else d))")
-  echo "$RESULT"
-  [ "$COUNT" -lt "$LIMIT" ] && break
-  OFFSET=$((OFFSET + LIMIT))
-done
-```

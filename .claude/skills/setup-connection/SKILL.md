@@ -1,11 +1,10 @@
 ---
 name: setup-connection
 description: Full end-to-end workflow to set up a new Airbyte pipeline from scratch
+disable-model-invocation: true
 ---
 
-# Skill: Setup Connection (End to End)
-
-Trigger phrases: "set up airbyte", "new airbyte pipeline", "full sync setup", "end to end setup"
+# Setup Connection (End to End)
 
 This skill walks through the entire pipeline setup from health check to monitored first sync.
 
@@ -33,9 +32,9 @@ a new workspace, ask for the name and create it before continuing.
 
 ### 3. Create the source
 
-Follow the manage-sources skill steps:
+Follow the /manage-sources skill steps:
 
-1. List source definitions: `python -m airbyte_cli source_definitions list --limit 100`
+1. List source definitions: `python -m airbyte_cli source_definitions list`
 2. Ask the user to select a source type and provide connection config.
 3. Write config to `config.json` and create:
    ```bash
@@ -50,9 +49,9 @@ Follow the manage-sources skill steps:
 
 ### 4. Create the destination
 
-Follow the manage-destinations skill steps:
+Follow the /manage-destinations skill steps:
 
-1. List destination definitions: `python -m airbyte_cli destination_definitions list --limit 100`
+1. List destination definitions: `python -m airbyte_cli destination_definitions list`
 2. Ask the user to select a destination type and provide connection config.
 3. Write config to `config.json` and create:
    ```bash
@@ -90,11 +89,11 @@ Note the `jobId`.
 
 ### 7. Monitor until complete
 
-Use the sync-status skill to poll the job until it reaches `succeeded` or `failed`:
+Use /sync-status to poll the job until it reaches `succeeded` or `failed`:
 
 ```bash
 python -m airbyte_cli jobs get --id <job-id>
 ```
 
 Report a final summary: records synced, bytes transferred, duration, and status.
-If the job failed, invoke the troubleshoot skill with the connection ID and job ID.
+If the job failed, invoke /troubleshoot with the connection ID and job ID.

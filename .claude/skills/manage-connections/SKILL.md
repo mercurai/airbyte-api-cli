@@ -1,22 +1,19 @@
 ---
 name: manage-connections
-description: Guide the user through connecting an existing Airbyte source to a destination
+description: Guide through connecting an existing Airbyte source to a destination
+disable-model-invocation: true
 ---
 
-# Skill: Manage Connections
-
-Trigger phrases: "connect", "wire up", "create pipeline", "create connection"
+# Manage Connections
 
 ## Prerequisites
 
 Both a source and a destination must already exist. If either is missing, invoke
-the manage-sources or manage-destinations skill first.
+the /manage-sources or /manage-destinations skill first.
 
 ## Steps
 
 ### 1. List available sources
-
-Show the user what sources exist in the workspace:
 
 ```bash
 python -m airbyte_cli sources list
@@ -25,8 +22,6 @@ python -m airbyte_cli sources list
 Ask the user to identify the `sourceId` they want to connect from.
 
 ### 2. List available destinations
-
-Show the user what destinations exist in the workspace:
 
 ```bash
 python -m airbyte_cli destinations list
@@ -79,4 +74,4 @@ If the user wants to run an immediate sync after creating the connection:
 python -m airbyte_cli jobs trigger --connection-id <connection-id> --type sync
 ```
 
-Note the `jobId` returned. Use the sync-status skill to monitor progress.
+Note the `jobId` returned. Use /sync-status to monitor progress.
