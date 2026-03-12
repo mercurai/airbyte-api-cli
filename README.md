@@ -408,29 +408,37 @@ python -m airbyte_cli users list --organization-id <ORG_ID> [--limit 20] [--offs
 ### Source Definitions
 
 Manage connector types available for creating sources (e.g., Postgres, Stripe, MySQL).
+Uses the Airbyte internal config API (`/api/v1/`) — all operations are POST with JSON body.
 
 ```bash
-python -m airbyte_cli source_definitions list [--limit 20] [--offset 0]
+python -m airbyte_cli source_definitions list [--workspace-id <WS_ID>]
 python -m airbyte_cli source_definitions get --id <DEF_ID>
 python -m airbyte_cli source_definitions create \
   --name "Custom Source" \
   --docker-repository my-org/source-custom \
   --docker-image-tag 1.0.0 \
-  [--documentation-url https://docs.example.com]
+  [--documentation-url https://docs.example.com] \
+  [--workspace-id <WS_ID>]
 python -m airbyte_cli source_definitions update --id <DEF_ID> \
   --name "Custom Source" --docker-repository my-org/source-custom --docker-image-tag 1.1.0
 python -m airbyte_cli source_definitions delete --id <DEF_ID>
 ```
 
+Without `--workspace-id`, `list` returns all definitions in the registry. With it, returns definitions available to that workspace.
+
 ### Destination Definitions
 
-Manage connector types available for creating destinations.
+Manage connector types available for creating destinations. Same internal API pattern as source definitions.
 
 ```bash
-python -m airbyte_cli destination_definitions list [--limit 20] [--offset 0]
+python -m airbyte_cli destination_definitions list [--workspace-id <WS_ID>]
 python -m airbyte_cli destination_definitions get --id <DEF_ID>
 python -m airbyte_cli destination_definitions create \
-  --name "Custom Dest" --docker-repository my-org/dest-custom --docker-image-tag 1.0.0
+  --name "Custom Dest" \
+  --docker-repository my-org/dest-custom \
+  --docker-image-tag 1.0.0 \
+  [--documentation-url https://docs.example.com] \
+  [--workspace-id <WS_ID>]
 python -m airbyte_cli destination_definitions update --id <DEF_ID> \
   --name "Custom Dest" --docker-repository my-org/dest-custom --docker-image-tag 1.1.0
 python -m airbyte_cli destination_definitions delete --id <DEF_ID>
@@ -438,20 +446,28 @@ python -m airbyte_cli destination_definitions delete --id <DEF_ID>
 
 ### Declarative Source Definitions
 
-Manage low-code connectors built with the [Airbyte CDK declarative framework](https://docs.airbyte.com/connector-development/config-based/). These are workspace-scoped and defined by a YAML/JSON manifest rather than a Docker image.
+Manage low-code connectors built with the [Airbyte CDK declarative framework](https://docs.airbyte.com/connector-development/config-based/). These are workspace-scoped manifests attached to an existing source definition (typically `airbyte/source-declarative-manifest`).
 
 ```bash
-python -m airbyte_cli declarative_source_definitions list [--limit 20] [--offset 0]
-python -m airbyte_cli declarative_source_definitions get --id <DEF_ID>
-python -m airbyte_cli declarative_source_definitions create \
-  --name "My Custom API" \
+python -m airbyte_cli declarative_source_definitions list \
   --workspace-id <WS_ID> \
+  --source-definition-id <DEF_ID>
+python -m airbyte_cli declarative_source_definitions create \
+  --workspace-id <WS_ID> \
+  --source-definition-id <DEF_ID> \
   --manifest @manifest.json \
-  [--description "Reads from Example API"]
-python -m airbyte_cli declarative_source_definitions update --id <DEF_ID> \
-  --name "My Custom API" --workspace-id <WS_ID> --manifest @manifest-v2.json
-python -m airbyte_cli declarative_source_definitions delete --id <DEF_ID>
+  [--spec @spec.json] \
+  [--description "Reads from Example API"] \
+  [--version 0]
+python -m airbyte_cli declarative_source_definitions update \
+  --workspace-id <WS_ID> \
+  --source-definition-id <DEF_ID> \
+  --manifest @manifest-v2.json \
+  [--spec @spec.json] \
+  [--version 1]
 ```
+
+Both `--manifest` and `--spec` accept inline JSON strings or `@file.json` file references.
 
 ### Tags
 
@@ -648,7 +664,7 @@ airbyte-api-cli/
 │       ├── applications/
 │       ├── health/
 │       └── config_cmd/
-├── tests/                       # 330 unit tests (unittest)
+├── tests/                       # 323 unit tests (unittest)
 ├── agent/                       # Claude Code agent + skills
 │   ├── airbyte-manager.md
 │   └── skills/
@@ -789,4 +805,4 @@ python -m airbyte_cli sources list --limit 100 > sources.json
 
 ## License
 
-Proprietary. Internal use only.
+MIT License. See [LICENSE](LICENSE) for details.

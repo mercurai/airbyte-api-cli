@@ -10,7 +10,7 @@ from airbyte_cli.models.common import ApiResponse
 
 
 def _ctx(mock_client):
-    return {"get_client": lambda: mock_client, "format": "json"}
+    return {"get_config_client": lambda: mock_client, "format": "json"}
 
 
 class TestSourceDefinitionCreate(unittest.TestCase):
@@ -42,54 +42,82 @@ class TestSourceDefinitionsApi(unittest.TestCase):
         self.client = MagicMock()
         self.api = SourceDefinitionsApi(self.client)
 
-    def test_list_returns_api_response(self):
+    def test_list_calls_post(self):
         self.client.request.return_value = {
-            "data": [{"sourceDefinitionId": "sd1", "name": "Postgres"}],
+            "sourceDefinitions": [{"sourceDefinitionId": "sd1", "name": "Postgres"}],
         }
         result = self.api.list()
         self.assertIsInstance(result, ApiResponse)
         self.assertEqual(result.data[0]["sourceDefinitionId"], "sd1")
-
-    def test_list_passes_pagination_params(self):
-        self.client.request.return_value = {"data": []}
-        self.api.list(limit=10, offset=5)
         self.client.request.assert_called_once_with(
-            "GET", "source_definitions", params={"limit": 10, "offset": 5}
+            "POST", "source_definitions/list", body={}
         )
 
-    def test_get_sends_correct_request(self):
+    def test_list_with_workspace(self):
+        self.client.request.return_value = {"sourceDefinitions": []}
+        self.api.list(workspace_id="ws1")
+        self.client.request.assert_called_once_with(
+            "POST",
+            "source_definitions/list_for_workspace",
+            body={"workspaceId": "ws1"},
+        )
+
+    def test_get_sends_post(self):
         self.client.request.return_value = {"sourceDefinitionId": "sd1"}
         result = self.api.get("sd1")
-        self.client.request.assert_called_once_with("GET", "source_definitions/sd1")
+        self.client.request.assert_called_once_with(
+            "POST",
+            "source_definitions/get",
+            body={"sourceDefinitionId": "sd1"},
+        )
         self.assertEqual(result["sourceDefinitionId"], "sd1")
 
-    def test_create_sends_post(self):
+    def test_create_sends_create_custom(self):
         self.client.request.return_value = {"sourceDefinitionId": "sd2"}
         payload = SourceDefinitionCreate(
             name="MySQL", docker_repository="airbyte/source-mysql", docker_image_tag="2.0.0"
         )
-        result = self.api.create(payload)
+        result = self.api.create(payload, workspace_id="ws1")
         self.client.request.assert_called_once_with(
-            "POST", "source_definitions", body=payload.to_dict()
+            "POST",
+            "source_definitions/create_custom",
+            body={
+                "workspaceId": "ws1",
+                "sourceDefinition": payload.to_dict(),
+            },
         )
         self.assertEqual(result["sourceDefinitionId"], "sd2")
 
-    def test_update_sends_put(self):
+    def test_create_without_workspace(self):
+        self.client.request.return_value = {"sourceDefinitionId": "sd2"}
+        payload = SourceDefinitionCreate(
+            name="MySQL", docker_repository="airbyte/source-mysql", docker_image_tag="2.0.0"
+        )
+        self.api.create(payload)
+        body = self.client.request.call_args[1]["body"]
+        self.assertNotIn("workspaceId", body)
+        self.assertIn("sourceDefinition", body)
+
+    def test_update_sends_post_with_id(self):
         self.client.request.return_value = {"sourceDefinitionId": "sd1"}
         payload = SourceDefinitionCreate(
             name="MySQL", docker_repository="airbyte/source-mysql", docker_image_tag="2.1.0"
         )
         self.api.update("sd1", payload)
-        self.client.request.assert_called_once_with(
-            "PUT", "source_definitions/sd1", body=payload.to_dict()
-        )
+        call_body = self.client.request.call_args[1]["body"]
+        self.assertEqual(call_body["sourceDefinitionId"], "sd1")
+        self.assertEqual(call_body["name"], "MySQL")
 
-    def test_delete_sends_delete(self):
+    def test_delete_sends_post(self):
         self.client.request.return_value = {}
         self.api.delete("sd1")
-        self.client.request.assert_called_once_with("DELETE", "source_definitions/sd1")
+        self.client.request.assert_called_once_with(
+            "POST",
+            "source_definitions/delete",
+            body={"sourceDefinitionId": "sd1"},
+        )
 
-    def test_list_empty_data(self):
+    def test_list_empty(self):
         self.client.request.return_value = {}
         result = self.api.list()
         self.assertEqual(result.data, [])
@@ -125,12 +153,12 @@ class TestSourceDefinitionsCommands(unittest.TestCase):
         from airbyte_cli.plugins.source_definitions.commands import _handle
 
         mock_client = MagicMock()
-        mock_client.request.return_value = {"data": []}
-        args = argparse.Namespace(action="list", limit=20, offset=0)
+        mock_client.request.return_value = {"sourceDefinitions": []}
+        args = argparse.Namespace(action="list", workspace_id=None)
         result = _handle(args, _ctx(mock_client))
         self.assertEqual(result, 0)
         mock_client.request.assert_called_once_with(
-            "GET", "source_definitions", params={"limit": 20, "offset": 0}
+            "POST", "source_definitions/list", body={}
         )
 
     def test_handle_get_calls_api(self):
@@ -141,7 +169,11 @@ class TestSourceDefinitionsCommands(unittest.TestCase):
         args = argparse.Namespace(action="get", definition_id="sd1")
         result = _handle(args, _ctx(mock_client))
         self.assertEqual(result, 0)
-        mock_client.request.assert_called_once_with("GET", "source_definitions/sd1")
+        mock_client.request.assert_called_once_with(
+            "POST",
+            "source_definitions/get",
+            body={"sourceDefinitionId": "sd1"},
+        )
 
     def test_handle_create_calls_api(self):
         from airbyte_cli.plugins.source_definitions.commands import _handle
@@ -154,43 +186,13 @@ class TestSourceDefinitionsCommands(unittest.TestCase):
             docker_repository="airbyte/source-mysql",
             docker_image_tag="2.0.0",
             documentation_url="",
+            workspace_id="ws1",
         )
         result = _handle(args, _ctx(mock_client))
         self.assertEqual(result, 0)
-        mock_client.request.assert_called_once_with(
-            "POST",
-            "source_definitions",
-            body={
-                "name": "MySQL",
-                "dockerRepository": "airbyte/source-mysql",
-                "dockerImageTag": "2.0.0",
-            },
-        )
-
-    def test_handle_update_uses_put(self):
-        from airbyte_cli.plugins.source_definitions.commands import _handle
-
-        mock_client = MagicMock()
-        mock_client.request.return_value = {"sourceDefinitionId": "sd1"}
-        args = argparse.Namespace(
-            action="update",
-            definition_id="sd1",
-            name="MySQL",
-            docker_repository="airbyte/source-mysql",
-            docker_image_tag="2.1.0",
-            documentation_url="",
-        )
-        result = _handle(args, _ctx(mock_client))
-        self.assertEqual(result, 0)
-        mock_client.request.assert_called_once_with(
-            "PUT",
-            "source_definitions/sd1",
-            body={
-                "name": "MySQL",
-                "dockerRepository": "airbyte/source-mysql",
-                "dockerImageTag": "2.1.0",
-            },
-        )
+        call_body = mock_client.request.call_args[1]["body"]
+        self.assertEqual(call_body["workspaceId"], "ws1")
+        self.assertEqual(call_body["sourceDefinition"]["name"], "MySQL")
 
     def test_handle_delete_calls_api(self):
         from airbyte_cli.plugins.source_definitions.commands import _handle
@@ -200,7 +202,11 @@ class TestSourceDefinitionsCommands(unittest.TestCase):
         args = argparse.Namespace(action="delete", definition_id="sd1")
         result = _handle(args, _ctx(mock_client))
         self.assertEqual(result, 0)
-        mock_client.request.assert_called_once_with("DELETE", "source_definitions/sd1")
+        mock_client.request.assert_called_once_with(
+            "POST",
+            "source_definitions/delete",
+            body={"sourceDefinitionId": "sd1"},
+        )
 
 
 if __name__ == "__main__":

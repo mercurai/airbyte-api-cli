@@ -20,22 +20,22 @@ def register_commands(
 
     # list
     list_cmd = sub.add_parser("list", help="List source definitions")
-    list_cmd.add_argument("--limit", type=int, default=20)
-    list_cmd.add_argument("--offset", type=int, default=0)
+    list_cmd.add_argument("--workspace-id", dest="workspace_id", default=None)
 
     # get
     get_cmd = sub.add_parser("get", help="Get source definition details")
     get_cmd.add_argument("--id", required=True, dest="definition_id")
 
     # create
-    create_cmd = sub.add_parser("create", help="Create a source definition")
+    create_cmd = sub.add_parser("create", help="Create a custom source definition")
     create_cmd.add_argument("--name", required=True)
     create_cmd.add_argument("--docker-repository", required=True, dest="docker_repository")
     create_cmd.add_argument("--docker-image-tag", required=True, dest="docker_image_tag")
     create_cmd.add_argument("--documentation-url", dest="documentation_url", default="")
+    create_cmd.add_argument("--workspace-id", dest="workspace_id", default=None)
 
-    # update (PUT — full replace)
-    update_cmd = sub.add_parser("update", help="Replace a source definition (PUT)")
+    # update
+    update_cmd = sub.add_parser("update", help="Update a source definition")
     update_cmd.add_argument("--id", required=True, dest="definition_id")
     update_cmd.add_argument("--name", required=True)
     update_cmd.add_argument("--docker-repository", required=True, dest="docker_repository")
@@ -53,12 +53,13 @@ def _handle(args: argparse.Namespace, context: dict[str, Any]) -> int:
     """Dispatch source_definitions subcommand."""
     from .api import SourceDefinitionsApi
 
-    client = context["get_client"]()
+    client = context["get_config_client"]()
     api = SourceDefinitionsApi(client)
     fmt = context.get("format", "json")
 
     if args.action == "list":
-        result = api.list(limit=args.limit, offset=args.offset)
+        ws = getattr(args, "workspace_id", None)
+        result = api.list(workspace_id=ws)
         output(result.data, fmt)
 
     elif args.action == "get":
@@ -72,7 +73,8 @@ def _handle(args: argparse.Namespace, context: dict[str, Any]) -> int:
             docker_image_tag=args.docker_image_tag,
             documentation_url=args.documentation_url,
         )
-        result = api.create(payload)
+        ws = getattr(args, "workspace_id", None)
+        result = api.create(payload, workspace_id=ws)
         output(result, fmt)
 
     elif args.action == "update":

@@ -8,40 +8,45 @@ from airbyte_cli.plugins.declarative_source_definitions.models import Declarativ
 from airbyte_cli.models.common import ApiResponse
 
 
+def _ctx(mock_client):
+    return {"get_config_client": lambda: mock_client, "format": "json"}
+
+
 class TestDeclarativeSourceDefinitionCreate(unittest.TestCase):
-    def test_to_dict_minimal(self):
+    def test_to_dict_full(self):
         payload = DeclarativeSourceDefinitionCreate(
-            name="MyConnector",
             workspace_id="ws1",
+            source_definition_id="sd1",
             manifest={"version": "0.1.0"},
-        )
-        d = payload.to_dict()
-        self.assertEqual(d["name"], "MyConnector")
-        self.assertEqual(d["workspaceId"], "ws1")
-        self.assertIn("declarativeManifest", d)
-        self.assertEqual(d["declarativeManifest"]["manifest"], {"version": "0.1.0"})
-
-    def test_to_dict_with_description(self):
-        payload = DeclarativeSourceDefinitionCreate(
-            name="MyConnector",
-            workspace_id="ws1",
-            manifest={"version": "0.1.0"},
+            spec={"connectionSpecification": {}},
             description="A test connector",
+            version=1,
         )
         d = payload.to_dict()
+        self.assertEqual(d["workspaceId"], "ws1")
+        self.assertEqual(d["sourceDefinitionId"], "sd1")
+        self.assertTrue(d["setAsActiveManifest"])
+        self.assertEqual(d["declarativeManifest"]["manifest"], {"version": "0.1.0"})
+        self.assertEqual(d["declarativeManifest"]["spec"], {"connectionSpecification": {}})
         self.assertEqual(d["declarativeManifest"]["description"], "A test connector")
+        self.assertEqual(d["declarativeManifest"]["version"], 1)
 
-    def test_to_dict_no_description_when_empty(self):
+    def test_to_dict_no_description(self):
         payload = DeclarativeSourceDefinitionCreate(
-            name="MyConnector",
             workspace_id="ws1",
+            source_definition_id="sd1",
         )
         d = payload.to_dict()
         self.assertNotIn("description", d["declarativeManifest"])
 
-    def test_default_manifest_is_empty_dict(self):
-        payload = DeclarativeSourceDefinitionCreate(name="X", workspace_id="ws1")
+    def test_defaults(self):
+        payload = DeclarativeSourceDefinitionCreate(
+            workspace_id="ws1", source_definition_id="sd1"
+        )
         self.assertEqual(payload.manifest, {})
+        self.assertEqual(payload.spec, {})
+        self.assertEqual(payload.version, 0)
+        self.assertTrue(payload.set_as_active)
 
 
 class TestDeclarativeSourceDefinitionsApi(unittest.TestCase):
@@ -49,62 +54,53 @@ class TestDeclarativeSourceDefinitionsApi(unittest.TestCase):
         self.client = MagicMock()
         self.api = DeclarativeSourceDefinitionsApi(self.client)
 
-    def test_list_returns_api_response(self):
+    def test_list_manifests(self):
         self.client.request.return_value = {
-            "data": [{"sourceDefinitionId": "dsd1", "name": "MyConnector"}],
+            "manifestVersions": [{"version": 0}],
         }
-        result = self.api.list()
+        result = self.api.list_manifests("ws1", "sd1")
         self.assertIsInstance(result, ApiResponse)
-        self.assertEqual(result.data[0]["sourceDefinitionId"], "dsd1")
-
-    def test_list_passes_pagination_params(self):
-        self.client.request.return_value = {"data": []}
-        self.api.list(limit=10, offset=5)
+        self.assertEqual(len(result.data), 1)
         self.client.request.assert_called_once_with(
-            "GET",
-            "declarative_source_definitions",
-            params={"limit": 10, "offset": 5},
+            "POST",
+            "declarative_source_definitions/list_manifests",
+            body={"workspaceId": "ws1", "sourceDefinitionId": "sd1"},
         )
 
-    def test_get_sends_correct_request(self):
-        self.client.request.return_value = {"sourceDefinitionId": "dsd1"}
-        result = self.api.get("dsd1")
-        self.client.request.assert_called_once_with(
-            "GET", "declarative_source_definitions/dsd1"
-        )
-        self.assertEqual(result["sourceDefinitionId"], "dsd1")
-
-    def test_create_sends_post(self):
-        self.client.request.return_value = {"sourceDefinitionId": "dsd2"}
-        payload = DeclarativeSourceDefinitionCreate(
-            name="MyConnector", workspace_id="ws1", manifest={"version": "0.1.0"}
-        )
-        result = self.api.create(payload)
-        self.client.request.assert_called_once_with(
-            "POST", "declarative_source_definitions", body=payload.to_dict()
-        )
-        self.assertEqual(result["sourceDefinitionId"], "dsd2")
-
-    def test_update_sends_put(self):
-        self.client.request.return_value = {"sourceDefinitionId": "dsd1"}
-        payload = DeclarativeSourceDefinitionCreate(
-            name="MyConnector", workspace_id="ws1", manifest={"version": "0.2.0"}
-        )
-        self.api.update("dsd1", payload)
-        self.client.request.assert_called_once_with(
-            "PUT", "declarative_source_definitions/dsd1", body=payload.to_dict()
-        )
-
-    def test_delete_sends_delete(self):
+    def test_create_manifest(self):
         self.client.request.return_value = {}
-        self.api.delete("dsd1")
+        payload = DeclarativeSourceDefinitionCreate(
+            workspace_id="ws1",
+            source_definition_id="sd1",
+            manifest={"version": "0.1.0"},
+            spec={},
+        )
+        self.api.create_manifest(payload)
         self.client.request.assert_called_once_with(
-            "DELETE", "declarative_source_definitions/dsd1"
+            "POST",
+            "declarative_source_definitions/create_manifest",
+            body=payload.to_dict(),
         )
 
-    def test_list_empty_data(self):
+    def test_update_manifest(self):
         self.client.request.return_value = {}
-        result = self.api.list()
+        payload = DeclarativeSourceDefinitionCreate(
+            workspace_id="ws1",
+            source_definition_id="sd1",
+            manifest={"version": "0.2.0"},
+            spec={},
+            version=1,
+        )
+        self.api.update_manifest(payload)
+        self.client.request.assert_called_once_with(
+            "POST",
+            "declarative_source_definitions/update_active_manifest",
+            body=payload.to_dict(),
+        )
+
+    def test_list_manifests_empty(self):
+        self.client.request.return_value = {}
+        result = self.api.list_manifests("ws1", "sd1")
         self.assertEqual(result.data, [])
 
 
@@ -116,28 +112,21 @@ class TestDeclarativeSourceDefinitionsCommands(unittest.TestCase):
         parser = argparse.ArgumentParser()
         sub = parser.add_subparsers()
         register_commands(sub, {})
-        args = parser.parse_args(["declarative_source_definitions", "list"])
-        self.assertEqual(args.action, "list")
-
-    def test_create_command_requires_workspace_id(self):
-        import argparse
-        from airbyte_cli.plugins.declarative_source_definitions.commands import register_commands
-
-        parser = argparse.ArgumentParser()
-        sub = parser.add_subparsers()
-        register_commands(sub, {})
         args = parser.parse_args([
-            "declarative_source_definitions", "create",
-            "--name", "X", "--workspace-id", "ws1", "--manifest", "{}",
+            "declarative_source_definitions", "list",
+            "--workspace-id", "ws1",
+            "--source-definition-id", "sd1",
         ])
+        self.assertEqual(args.action, "list")
         self.assertEqual(args.workspace_id, "ws1")
+        self.assertEqual(args.source_definition_id, "sd1")
 
     def test_handle_no_action_returns_1(self):
         import argparse
         from airbyte_cli.plugins.declarative_source_definitions.commands import _handle
 
         args = argparse.Namespace(action=None)
-        result = _handle(args, {"get_client": lambda: MagicMock(), "format": "json"})
+        result = _handle(args, _ctx(MagicMock()))
         self.assertEqual(result, 1)
 
     def test_handle_list_calls_api(self):
@@ -145,13 +134,16 @@ class TestDeclarativeSourceDefinitionsCommands(unittest.TestCase):
         from airbyte_cli.plugins.declarative_source_definitions.commands import _handle
 
         mock_client = MagicMock()
-        mock_client.request.return_value = {"data": []}
-        args = argparse.Namespace(action="list", limit=20, offset=0)
-        context = {"get_client": lambda: mock_client, "format": "json"}
-        result = _handle(args, context)
+        mock_client.request.return_value = {"manifestVersions": []}
+        args = argparse.Namespace(
+            action="list", workspace_id="ws1", source_definition_id="sd1"
+        )
+        result = _handle(args, _ctx(mock_client))
         self.assertEqual(result, 0)
         mock_client.request.assert_called_once_with(
-            "GET", "declarative_source_definitions", params={"limit": 20, "offset": 0}
+            "POST",
+            "declarative_source_definitions/list_manifests",
+            body={"workspaceId": "ws1", "sourceDefinitionId": "sd1"},
         )
 
     def test_handle_create_calls_api(self):
@@ -159,20 +151,24 @@ class TestDeclarativeSourceDefinitionsCommands(unittest.TestCase):
         from airbyte_cli.plugins.declarative_source_definitions.commands import _handle
 
         mock_client = MagicMock()
-        mock_client.request.return_value = {"sourceDefinitionId": "dsd2"}
+        mock_client.request.return_value = {}
         args = argparse.Namespace(
             action="create",
-            name="X",
             workspace_id="ws1",
+            source_definition_id="sd1",
             manifest='{"version": "0.1.0"}',
-            description="",
+            spec="{}",
+            description="test",
+            version=0,
         )
-        context = {"get_client": lambda: mock_client, "format": "json"}
-        result = _handle(args, context)
+        result = _handle(args, _ctx(mock_client))
         self.assertEqual(result, 0)
-        mock_client.request.assert_called_once()
+        call_body = mock_client.request.call_args[1]["body"]
+        self.assertEqual(call_body["workspaceId"], "ws1")
+        self.assertEqual(call_body["sourceDefinitionId"], "sd1")
+        self.assertTrue(call_body["setAsActiveManifest"])
 
-    def test_handle_update_uses_put(self):
+    def test_handle_update_calls_api(self):
         import argparse
         from airbyte_cli.plugins.declarative_source_definitions.commands import _handle
 
@@ -180,31 +176,17 @@ class TestDeclarativeSourceDefinitionsCommands(unittest.TestCase):
         mock_client.request.return_value = {}
         args = argparse.Namespace(
             action="update",
-            definition_id="dsd1",
-            name="X",
             workspace_id="ws1",
+            source_definition_id="sd1",
             manifest='{"version": "0.2.0"}',
+            spec="{}",
             description="",
+            version=1,
         )
-        context = {"get_client": lambda: mock_client, "format": "json"}
-        result = _handle(args, context)
+        result = _handle(args, _ctx(mock_client))
         self.assertEqual(result, 0)
-        call_args = mock_client.request.call_args
-        self.assertEqual(call_args[0][0], "PUT")
-
-    def test_handle_delete_calls_api(self):
-        import argparse
-        from airbyte_cli.plugins.declarative_source_definitions.commands import _handle
-
-        mock_client = MagicMock()
-        mock_client.request.return_value = {}
-        args = argparse.Namespace(action="delete", definition_id="dsd1")
-        context = {"get_client": lambda: mock_client, "format": "json"}
-        result = _handle(args, context)
-        self.assertEqual(result, 0)
-        mock_client.request.assert_called_once_with(
-            "DELETE", "declarative_source_definitions/dsd1"
-        )
+        mock_client.request.assert_called_once()
+        self.assertIn("update_active_manifest", mock_client.request.call_args[0][1])
 
 
 if __name__ == "__main__":

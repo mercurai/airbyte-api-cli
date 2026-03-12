@@ -23,38 +23,41 @@ def register_commands(
     sub = parser.add_subparsers(dest="action")
 
     # list
-    list_cmd = sub.add_parser("list", help="List declarative source definitions")
-    list_cmd.add_argument("--limit", type=int, default=20)
-    list_cmd.add_argument("--offset", type=int, default=0)
-
-    # get
-    get_cmd = sub.add_parser("get", help="Get declarative source definition details")
-    get_cmd.add_argument("--id", required=True, dest="definition_id")
+    list_cmd = sub.add_parser("list", help="List manifest versions")
+    list_cmd.add_argument("--workspace-id", required=True, dest="workspace_id")
+    list_cmd.add_argument(
+        "--source-definition-id", required=True, dest="source_definition_id"
+    )
 
     # create
-    create_cmd = sub.add_parser("create", help="Create a declarative source definition")
-    create_cmd.add_argument("--name", required=True)
+    create_cmd = sub.add_parser("create", help="Create a declarative manifest")
     create_cmd.add_argument("--workspace-id", required=True, dest="workspace_id")
+    create_cmd.add_argument(
+        "--source-definition-id", required=True, dest="source_definition_id"
+    )
     create_cmd.add_argument(
         "--manifest", required=True, help="JSON manifest string or @file.json"
     )
-    create_cmd.add_argument("--description", default="")
-
-    # update (PUT -- full replace)
-    update_cmd = sub.add_parser(
-        "update", help="Replace a declarative source definition (PUT)"
+    create_cmd.add_argument(
+        "--spec", default="{}", help="JSON spec string or @file.json"
     )
-    update_cmd.add_argument("--id", required=True, dest="definition_id")
-    update_cmd.add_argument("--name", required=True)
+    create_cmd.add_argument("--description", default="")
+    create_cmd.add_argument("--version", type=int, default=0)
+
+    # update
+    update_cmd = sub.add_parser("update", help="Update the active manifest")
     update_cmd.add_argument("--workspace-id", required=True, dest="workspace_id")
+    update_cmd.add_argument(
+        "--source-definition-id", required=True, dest="source_definition_id"
+    )
     update_cmd.add_argument(
         "--manifest", required=True, help="JSON manifest string or @file.json"
     )
+    update_cmd.add_argument(
+        "--spec", default="{}", help="JSON spec string or @file.json"
+    )
     update_cmd.add_argument("--description", default="")
-
-    # delete
-    delete_cmd = sub.add_parser("delete", help="Delete a declarative source definition")
-    delete_cmd.add_argument("--id", required=True, dest="definition_id")
+    update_cmd.add_argument("--version", type=int, default=0)
 
     parser.set_defaults(handler=_handle)
 
@@ -63,42 +66,41 @@ def _handle(args: argparse.Namespace, context: dict[str, Any]) -> int:
     """Dispatch declarative_source_definitions subcommand."""
     from .api import DeclarativeSourceDefinitionsApi
 
-    client = context["get_client"]()
+    client = context["get_config_client"]()
     api = DeclarativeSourceDefinitionsApi(client)
     fmt = context.get("format", "json")
 
     if args.action == "list":
-        result = api.list(limit=args.limit, offset=args.offset)
+        result = api.list_manifests(args.workspace_id, args.source_definition_id)
         output(result.data, fmt)
-
-    elif args.action == "get":
-        result = api.get(args.definition_id)
-        output(result, fmt)
 
     elif args.action == "create":
         manifest = resolve_json_arg(args.manifest)
+        spec = resolve_json_arg(args.spec)
         payload = DeclarativeSourceDefinitionCreate(
-            name=args.name,
             workspace_id=args.workspace_id,
+            source_definition_id=args.source_definition_id,
             manifest=manifest,
+            spec=spec,
             description=args.description,
+            version=args.version,
         )
-        result = api.create(payload)
+        result = api.create_manifest(payload)
         output(result, fmt)
 
     elif args.action == "update":
         manifest = resolve_json_arg(args.manifest)
+        spec = resolve_json_arg(args.spec)
         payload = DeclarativeSourceDefinitionCreate(
-            name=args.name,
             workspace_id=args.workspace_id,
+            source_definition_id=args.source_definition_id,
             manifest=manifest,
+            spec=spec,
             description=args.description,
+            version=args.version,
         )
-        result = api.update(args.definition_id, payload)
+        result = api.update_manifest(payload)
         output(result, fmt)
-
-    elif args.action == "delete":
-        api.delete(args.definition_id)
 
     else:
         error("usage", "No action specified. Use --help.")

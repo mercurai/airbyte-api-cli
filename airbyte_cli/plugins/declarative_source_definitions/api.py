@@ -1,4 +1,4 @@
-"""API client for declarative source definition endpoints."""
+"""API client for declarative source definition endpoints (OSS internal API)."""
 
 from __future__ import annotations
 
@@ -11,42 +11,44 @@ from .models import DeclarativeSourceDefinitionCreate
 
 
 class DeclarativeSourceDefinitionsApi:
-    """Wraps the /declarative_source_definitions Airbyte API endpoints."""
+    """Wraps the /declarative_source_definitions OSS config API endpoints.
+
+    Uses the internal RPC-style POST API at /api/v1/.  On OSS, declarative
+    manifests are attached to an existing source definition (created first
+    via source_definitions/create_custom with the airbyte/source-declarative-manifest
+    Docker image).
+    """
 
     def __init__(self, client: HttpClient) -> None:
         self.client = client
 
-    def list(self, limit: int = 20, offset: int = 0) -> ApiResponse:
-        params: dict[str, Any] = {"limit": limit, "offset": offset}
+    def list_manifests(
+        self, workspace_id: str, source_definition_id: str
+    ) -> ApiResponse:
         resp = self.client.request(
-            "GET", "declarative_source_definitions", params=params
+            "POST",
+            "declarative_source_definitions/list_manifests",
+            body={
+                "workspaceId": workspace_id,
+                "sourceDefinitionId": source_definition_id,
+            },
         )
-        return ApiResponse(
-            data=resp.get("data", []),
-            next_url=resp.get("next"),
-            previous_url=resp.get("previous"),
-        )
+        return ApiResponse(data=resp.get("manifestVersions", []))
 
-    def get(self, definition_id: str) -> dict[str, Any]:
-        return self.client.request(
-            "GET", f"declarative_source_definitions/{definition_id}"
-        )
-
-    def create(self, data: DeclarativeSourceDefinitionCreate) -> dict[str, Any]:
-        return self.client.request(
-            "POST", "declarative_source_definitions", body=data.to_dict()
-        )
-
-    def update(
-        self, definition_id: str, data: DeclarativeSourceDefinitionCreate
+    def create_manifest(
+        self, data: DeclarativeSourceDefinitionCreate
     ) -> dict[str, Any]:
         return self.client.request(
-            "PUT",
-            f"declarative_source_definitions/{definition_id}",
+            "POST",
+            "declarative_source_definitions/create_manifest",
             body=data.to_dict(),
         )
 
-    def delete(self, definition_id: str) -> None:
-        self.client.request(
-            "DELETE", f"declarative_source_definitions/{definition_id}"
+    def update_manifest(
+        self, data: DeclarativeSourceDefinitionCreate
+    ) -> dict[str, Any]:
+        return self.client.request(
+            "POST",
+            "declarative_source_definitions/update_active_manifest",
+            body=data.to_dict(),
         )

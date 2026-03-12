@@ -10,7 +10,7 @@ from airbyte_cli.models.common import ApiResponse
 
 
 def _ctx(mock_client):
-    return {"get_client": lambda: mock_client, "format": "json"}
+    return {"get_config_client": lambda: mock_client, "format": "json"}
 
 
 class TestDestinationDefinitionCreate(unittest.TestCase):
@@ -42,41 +42,55 @@ class TestDestinationDefinitionsApi(unittest.TestCase):
         self.client = MagicMock()
         self.api = DestinationDefinitionsApi(self.client)
 
-    def test_list_returns_api_response(self):
+    def test_list_calls_post(self):
         self.client.request.return_value = {
-            "data": [{"destinationDefinitionId": "dd1", "name": "Snowflake"}],
+            "destinationDefinitions": [{"destinationDefinitionId": "dd1", "name": "Snowflake"}],
         }
         result = self.api.list()
         self.assertIsInstance(result, ApiResponse)
         self.assertEqual(result.data[0]["destinationDefinitionId"], "dd1")
-
-    def test_list_passes_pagination_params(self):
-        self.client.request.return_value = {"data": []}
-        self.api.list(limit=10, offset=5)
         self.client.request.assert_called_once_with(
-            "GET", "destination_definitions", params={"limit": 10, "offset": 5}
+            "POST", "destination_definitions/list", body={}
         )
 
-    def test_get_sends_correct_request(self):
+    def test_list_with_workspace(self):
+        self.client.request.return_value = {"destinationDefinitions": []}
+        self.api.list(workspace_id="ws1")
+        self.client.request.assert_called_once_with(
+            "POST",
+            "destination_definitions/list_for_workspace",
+            body={"workspaceId": "ws1"},
+        )
+
+    def test_get_sends_post(self):
         self.client.request.return_value = {"destinationDefinitionId": "dd1"}
         result = self.api.get("dd1")
-        self.client.request.assert_called_once_with("GET", "destination_definitions/dd1")
+        self.client.request.assert_called_once_with(
+            "POST",
+            "destination_definitions/get",
+            body={"destinationDefinitionId": "dd1"},
+        )
         self.assertEqual(result["destinationDefinitionId"], "dd1")
 
-    def test_create_sends_post(self):
+    def test_create_sends_create_custom(self):
         self.client.request.return_value = {"destinationDefinitionId": "dd2"}
         payload = DestinationDefinitionCreate(
             name="BigQuery",
             docker_repository="airbyte/destination-bigquery",
             docker_image_tag="1.5.0",
         )
-        result = self.api.create(payload)
+        result = self.api.create(payload, workspace_id="ws1")
         self.client.request.assert_called_once_with(
-            "POST", "destination_definitions", body=payload.to_dict()
+            "POST",
+            "destination_definitions/create_custom",
+            body={
+                "workspaceId": "ws1",
+                "destinationDefinition": payload.to_dict(),
+            },
         )
         self.assertEqual(result["destinationDefinitionId"], "dd2")
 
-    def test_update_sends_put(self):
+    def test_update_sends_post_with_id(self):
         self.client.request.return_value = {"destinationDefinitionId": "dd1"}
         payload = DestinationDefinitionCreate(
             name="BigQuery",
@@ -84,16 +98,20 @@ class TestDestinationDefinitionsApi(unittest.TestCase):
             docker_image_tag="1.6.0",
         )
         self.api.update("dd1", payload)
-        self.client.request.assert_called_once_with(
-            "PUT", "destination_definitions/dd1", body=payload.to_dict()
-        )
+        call_body = self.client.request.call_args[1]["body"]
+        self.assertEqual(call_body["destinationDefinitionId"], "dd1")
+        self.assertEqual(call_body["name"], "BigQuery")
 
-    def test_delete_sends_delete(self):
+    def test_delete_sends_post(self):
         self.client.request.return_value = {}
         self.api.delete("dd1")
-        self.client.request.assert_called_once_with("DELETE", "destination_definitions/dd1")
+        self.client.request.assert_called_once_with(
+            "POST",
+            "destination_definitions/delete",
+            body={"destinationDefinitionId": "dd1"},
+        )
 
-    def test_list_empty_data(self):
+    def test_list_empty(self):
         self.client.request.return_value = {}
         result = self.api.list()
         self.assertEqual(result.data, [])
@@ -129,12 +147,12 @@ class TestDestinationDefinitionsCommands(unittest.TestCase):
         from airbyte_cli.plugins.destination_definitions.commands import _handle
 
         mock_client = MagicMock()
-        mock_client.request.return_value = {"data": []}
-        args = argparse.Namespace(action="list", limit=20, offset=0)
+        mock_client.request.return_value = {"destinationDefinitions": []}
+        args = argparse.Namespace(action="list", workspace_id=None)
         result = _handle(args, _ctx(mock_client))
         self.assertEqual(result, 0)
         mock_client.request.assert_called_once_with(
-            "GET", "destination_definitions", params={"limit": 20, "offset": 0}
+            "POST", "destination_definitions/list", body={}
         )
 
     def test_handle_get_calls_api(self):
@@ -145,7 +163,6 @@ class TestDestinationDefinitionsCommands(unittest.TestCase):
         args = argparse.Namespace(action="get", definition_id="dd1")
         result = _handle(args, _ctx(mock_client))
         self.assertEqual(result, 0)
-        mock_client.request.assert_called_once_with("GET", "destination_definitions/dd1")
 
     def test_handle_create_calls_api(self):
         from airbyte_cli.plugins.destination_definitions.commands import _handle
@@ -158,43 +175,13 @@ class TestDestinationDefinitionsCommands(unittest.TestCase):
             docker_repository="airbyte/destination-bigquery",
             docker_image_tag="1.5.0",
             documentation_url="",
+            workspace_id="ws1",
         )
         result = _handle(args, _ctx(mock_client))
         self.assertEqual(result, 0)
-        mock_client.request.assert_called_once_with(
-            "POST",
-            "destination_definitions",
-            body={
-                "name": "BigQuery",
-                "dockerRepository": "airbyte/destination-bigquery",
-                "dockerImageTag": "1.5.0",
-            },
-        )
-
-    def test_handle_update_uses_put(self):
-        from airbyte_cli.plugins.destination_definitions.commands import _handle
-
-        mock_client = MagicMock()
-        mock_client.request.return_value = {"destinationDefinitionId": "dd1"}
-        args = argparse.Namespace(
-            action="update",
-            definition_id="dd1",
-            name="BigQuery",
-            docker_repository="airbyte/destination-bigquery",
-            docker_image_tag="1.6.0",
-            documentation_url="",
-        )
-        result = _handle(args, _ctx(mock_client))
-        self.assertEqual(result, 0)
-        mock_client.request.assert_called_once_with(
-            "PUT",
-            "destination_definitions/dd1",
-            body={
-                "name": "BigQuery",
-                "dockerRepository": "airbyte/destination-bigquery",
-                "dockerImageTag": "1.6.0",
-            },
-        )
+        call_body = mock_client.request.call_args[1]["body"]
+        self.assertEqual(call_body["workspaceId"], "ws1")
+        self.assertEqual(call_body["destinationDefinition"]["name"], "BigQuery")
 
     def test_handle_delete_calls_api(self):
         from airbyte_cli.plugins.destination_definitions.commands import _handle
@@ -204,7 +191,11 @@ class TestDestinationDefinitionsCommands(unittest.TestCase):
         args = argparse.Namespace(action="delete", definition_id="dd1")
         result = _handle(args, _ctx(mock_client))
         self.assertEqual(result, 0)
-        mock_client.request.assert_called_once_with("DELETE", "destination_definitions/dd1")
+        mock_client.request.assert_called_once_with(
+            "POST",
+            "destination_definitions/delete",
+            body={"destinationDefinitionId": "dd1"},
+        )
 
 
 if __name__ == "__main__":

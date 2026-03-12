@@ -118,19 +118,43 @@ def main(argv: list[str] | None = None) -> int:
         context["format"] = args.format
 
     # Lazy HTTP client builder — only invoked when a command needs it
-    def get_client():
+    def _get_token():
         from airbyte_cli.core.auth import TokenManager
-        from airbyte_cli.core.client import HttpClient
-
         token_mgr = TokenManager(config, config_dir=config_dir)
-        token = token_mgr.get_token()
+        return token_mgr.get_token()
+
+    def get_client():
+        from airbyte_cli.core.client import HttpClient
         return HttpClient(
             base_url=config.base_url,
-            token=token,
+            token=_get_token(),
+            timeout=config.timeout,
+        )
+
+    def get_config_client():
+        """Client targeting the internal config API (/api/v1/).
+
+        The OSS internal API uses RPC-style POST endpoints for connector
+        definitions.  We derive its base URL from the public API base URL.
+        """
+        from airbyte_cli.core.client import HttpClient
+        base = config.base_url.rstrip("/")
+        # http://host:8000/api/public/v1 → http://host:8000/api/v1
+        if "/api/public/v1" in base:
+            config_base = base.replace("/api/public/v1", "/api/v1")
+        elif base.endswith("/api/v1"):
+            config_base = base
+        else:
+            # Best-effort: append /api/v1
+            config_base = base.rsplit("/api", 1)[0] + "/api/v1"
+        return HttpClient(
+            base_url=config_base,
+            token=_get_token(),
             timeout=config.timeout,
         )
 
     context["get_client"] = get_client
+    context["get_config_client"] = get_config_client
 
     # Dispatch to plugin handler
     handler = getattr(args, "handler", None)

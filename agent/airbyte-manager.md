@@ -193,48 +193,58 @@ python -m airbyte_cli users list --organization-id <ORG_ID> [--limit N] [--offse
 
 ### Source Definitions
 
-Connector definitions available in the Airbyte registry (e.g., Stripe, Postgres, etc.).
+Connector definitions in the Airbyte registry. Uses internal config API (`/api/v1/`).
 
 ```bash
-python -m airbyte_cli source_definitions list [--limit N] [--offset N]
+python -m airbyte_cli source_definitions list [--workspace-id WS]
 python -m airbyte_cli source_definitions get --id <DEF_ID>
 python -m airbyte_cli source_definitions create \
   --name NAME \
   --docker-repository REPO \
   --docker-image-tag TAG \
-  [--documentation-url URL]
-python -m airbyte_cli source_definitions update --id <ID> --name NAME --docker-repository REPO --docker-image-tag TAG
+  [--documentation-url URL] \
+  [--workspace-id WS]
+python -m airbyte_cli source_definitions update --id <ID> \
+  --name NAME --docker-repository REPO --docker-image-tag TAG
 python -m airbyte_cli source_definitions delete --id <ID>
 ```
 
 ### Destination Definitions
 
 ```bash
-python -m airbyte_cli destination_definitions list [--limit N] [--offset N]
+python -m airbyte_cli destination_definitions list [--workspace-id WS]
 python -m airbyte_cli destination_definitions get --id <DEF_ID>
-python -m airbyte_cli destination_definitions create --name NAME --docker-repository REPO --docker-image-tag TAG
-python -m airbyte_cli destination_definitions update --id <ID> --name NAME --docker-repository REPO --docker-image-tag TAG
+python -m airbyte_cli destination_definitions create \
+  --name NAME \
+  --docker-repository REPO \
+  --docker-image-tag TAG \
+  [--documentation-url URL] \
+  [--workspace-id WS]
+python -m airbyte_cli destination_definitions update --id <ID> \
+  --name NAME --docker-repository REPO --docker-image-tag TAG
 python -m airbyte_cli destination_definitions delete --id <ID>
 ```
 
 ### Declarative Source Definitions (low-code connectors)
 
-Custom connectors built with the Airbyte low-code CDK using a YAML manifest.
+Manifest-based connectors attached to an existing source definition.
 
 ```bash
-python -m airbyte_cli declarative_source_definitions list [--limit N] [--offset N]
-python -m airbyte_cli declarative_source_definitions get --id <DEF_ID>
+python -m airbyte_cli declarative_source_definitions list \
+  --workspace-id WS --source-definition-id DEF_ID
 python -m airbyte_cli declarative_source_definitions create \
-  --name NAME \
   --workspace-id WS \
-  --manifest '{}' \
-  [--description DESC]
-python -m airbyte_cli declarative_source_definitions create \
-  --name NAME \
+  --source-definition-id DEF_ID \
+  --manifest @manifest.json \
+  [--spec @spec.json] \
+  [--description DESC] \
+  [--version 0]
+python -m airbyte_cli declarative_source_definitions update \
   --workspace-id WS \
-  --manifest @manifest.json
-python -m airbyte_cli declarative_source_definitions update --id <ID> --name NAME --workspace-id WS --manifest '{}'
-python -m airbyte_cli declarative_source_definitions delete --id <ID>
+  --source-definition-id DEF_ID \
+  --manifest @manifest-v2.json \
+  [--spec @spec.json] \
+  [--version 1]
 ```
 
 ### Tags
@@ -282,9 +292,11 @@ Jobs have status: `pending`, `running`, `succeeded`, `failed`, `cancelled`.
 
 **Source/Destination Definition**: The connector type in the registry, identified by a
 Docker image (e.g., `airbyte/source-postgres:1.0.0`). Shared across workspaces.
+Managed via the internal config API (`/api/v1/`), not the public API.
 
 **Declarative Source Definition**: A low-code connector defined by a YAML manifest
-rather than custom code. Workspace-scoped, not in the global registry.
+attached to an existing source definition. Workspace-scoped. Requires both
+`--workspace-id` and `--source-definition-id` for all operations.
 
 **Permission**: Grants a user a role within a workspace or organization.
 
@@ -302,7 +314,7 @@ short-lived access token for non-interactive automation.
 python -m airbyte_cli workspaces list --format table
 
 # 2. Find the source connector type
-python -m airbyte_cli source_definitions list --format table | grep -i postgres
+python -m airbyte_cli source_definitions list | python -c "import sys,json; [print(d['sourceDefinitionId'], d['name']) for d in json.load(sys.stdin) if 'postgres' in d['name'].lower()]"
 
 # 3. Create the source
 python -m airbyte_cli sources create \
@@ -312,7 +324,7 @@ python -m airbyte_cli sources create \
   --config @postgres-config.json
 
 # 4. Find the destination connector type
-python -m airbyte_cli destination_definitions list --format table | grep -i snowflake
+python -m airbyte_cli destination_definitions list | python -c "import sys,json; [print(d['destinationDefinitionId'], d['name']) for d in json.load(sys.stdin) if 'snowflake' in d['name'].lower()]"
 
 # 5. Create the destination
 python -m airbyte_cli destinations create \
