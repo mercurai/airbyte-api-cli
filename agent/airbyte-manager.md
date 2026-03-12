@@ -19,11 +19,16 @@ Config must be initialized before any API calls. The CLI reads config from
 `~/.airbyte_cli/config.json` by default, or from the path in `--config-dir`.
 
 ```bash
-# Set base URL and token auth
-python -m airbyte_cli config set --base-url https://your-airbyte-host.com
+# Set base URL
+python -m airbyte_cli config set --base-url https://your-airbyte-host.com/api/public/v1
+
+# Option A: Basic auth (self-hosted Airbyte OSS)
+python -m airbyte_cli config set --username airbyte --password password
+
+# Option B: Bearer token
 python -m airbyte_cli config set --token YOUR_TOKEN
 
-# Or use OAuth client credentials
+# Option C: OAuth client credentials (Airbyte Cloud)
 python -m airbyte_cli config set --client-id YOUR_CLIENT_ID --client-secret YOUR_CLIENT_SECRET
 
 # Verify config
@@ -59,6 +64,8 @@ python -m airbyte_cli health
 python -m airbyte_cli \
   --base-url <URL> \
   --token <TOKEN> \
+  --username <USER> \
+  --password <PASS> \
   --format {json,table,compact} \
   --config-dir <DIR>
 ```
@@ -73,6 +80,7 @@ Global flags override config file values for a single invocation.
 
 ```bash
 python -m airbyte_cli config set --base-url <URL>
+python -m airbyte_cli config set --username <USER> --password <PASS>
 python -m airbyte_cli config set --client-id <ID> --client-secret <SECRET>
 python -m airbyte_cli config set --token <TOKEN>
 python -m airbyte_cli config show
@@ -366,7 +374,7 @@ python -m airbyte_cli jobs trigger --connection-id <CONN_ID> --type sync
 ```
 
 Common failure causes:
-- Auth error (exit 2): token expired or wrong credentials in config
+- Auth error (exit 2): token expired, wrong username/password, or wrong client credentials
 - Network error (exit 4): Airbyte host unreachable, check `--base-url`
 - API error (exit 1) on create: invalid config schema for the connector type;
   check the source/destination definition's expected config shape

@@ -10,7 +10,7 @@ Includes a [Claude Code](https://claude.ai/claude-code) agent definition and 6 s
 - **Zero dependencies** — stdlib only (`urllib.request`, `argparse`, `json`, `dataclasses`, `pathlib`)
 - **Plugin architecture** — each resource is a self-contained package; adding a new one requires no core changes
 - **Agent-friendly** — JSON to stdout, errors to stderr, deterministic exit codes
-- **OAuth2 client credentials** — automatic token acquisition, disk caching, and refresh on 401
+- **Flexible auth** — basic auth (username/password), OAuth2 client credentials, or direct bearer token
 - **Three output modes** — `json` (default), `table` (human), `compact` (pipe-friendly)
 - **Retry with backoff** — 3 retries on 5xx/network errors (1s, 2s, 4s delays)
 - **Config hierarchy** — CLI flags > environment variables > config file
@@ -19,7 +19,7 @@ Includes a [Claude Code](https://claude.ai/claude-code) agent definition and 6 s
 
 - Python 3.10 or later
 - Network access to your Airbyte instance
-- An Airbyte application (client_id + client_secret) or a bearer token
+- An Airbyte application (client_id + client_secret), a bearer token, or basic auth credentials (username + password)
 
 ## Installation
 
@@ -39,10 +39,13 @@ python -m airbyte_cli --version
 # Set your Airbyte API base URL
 python -m airbyte_cli config set --base-url https://your-airbyte.example.com/api/public/v1
 
-# Option A: Client credentials (recommended for automation)
+# Option A: Basic auth (common for self-hosted Airbyte OSS)
+python -m airbyte_cli config set --username airbyte --password password
+
+# Option B: Client credentials (recommended for Airbyte Cloud / automation)
 python -m airbyte_cli config set --client-id YOUR_CLIENT_ID --client-secret YOUR_CLIENT_SECRET
 
-# Option B: Direct bearer token
+# Option C: Direct bearer token
 python -m airbyte_cli config set --token YOUR_BEARER_TOKEN
 ```
 
@@ -97,11 +100,11 @@ python -m airbyte_cli jobs trigger --connection-id <CONN_ID> --type sync
 
 ## Authentication
 
-Three methods are supported, checked in this order:
+Four methods are supported, checked in this priority order:
 
-### 1. Direct token (simplest)
+### 1. Direct token (highest priority)
 
-Pass a pre-obtained bearer token. Skips the client credentials flow entirely.
+Pass a pre-obtained bearer token. Skips all other auth methods.
 
 ```bash
 # Via CLI flag (per-invocation)
@@ -115,7 +118,23 @@ python -m airbyte_cli sources list
 python -m airbyte_cli config set --token eyJhbGciOi...
 ```
 
-### 2. Client credentials (recommended for automation)
+### 2. Basic auth (common for self-hosted Airbyte OSS)
+
+Username/password basic auth. The CLI sends a standard HTTP Basic `Authorization` header. This is the default auth method for self-hosted Airbyte OSS instances.
+
+```bash
+# Via CLI flags
+python -m airbyte_cli --username airbyte --password password workspaces list
+
+# Via environment variables
+export AIRBYTE_USERNAME=airbyte
+export AIRBYTE_PASSWORD=password
+
+# Via config file
+python -m airbyte_cli config set --username airbyte --password password
+```
+
+### 3. Client credentials (recommended for Airbyte Cloud / automation)
 
 The CLI acquires a token via `POST /applications/token` using your application's client_id and client_secret. The token is cached to `~/.config/airbyte-cli/token.json` with its expiry timestamp. If the token expires (or a 401 is received), the CLI automatically refreshes it.
 
@@ -130,7 +149,7 @@ python -m airbyte_cli config set --client-id YOUR_ID --client-secret YOUR_SECRET
 
 Token expiry varies by deployment: ~900 seconds on Airbyte Cloud, ~3600 seconds on self-managed. A 60-second buffer is applied — the CLI refreshes if less than 60 seconds remain.
 
-### 3. Creating an application
+### 4. Creating an application
 
 If you don't have credentials yet, create an application through the CLI (requires an existing token or admin access):
 
@@ -158,7 +177,9 @@ Save the `clientId` and `clientSecret` from the response and configure them as a
 | Variable | Purpose |
 |----------|---------|
 | `AIRBYTE_BASE_URL` | API base URL (e.g., `https://airbyte.example.com/api/public/v1`) |
-| `AIRBYTE_TOKEN` | Bearer token (skips client credentials flow) |
+| `AIRBYTE_TOKEN` | Bearer token (skips all other auth) |
+| `AIRBYTE_USERNAME` | Basic auth username (for self-hosted Airbyte OSS) |
+| `AIRBYTE_PASSWORD` | Basic auth password |
 | `AIRBYTE_CLIENT_ID` | OAuth2 application client ID |
 | `AIRBYTE_CLIENT_SECRET` | OAuth2 application client secret |
 | `AIRBYTE_WORKSPACE_ID` | Default workspace ID for commands that accept `--workspace-id` |
@@ -170,6 +191,8 @@ Located at `~/.config/airbyte-cli/config.json` by default (override with `--conf
 ```json
 {
   "base_url": "https://airbyte.example.com/api/public/v1",
+  "username": "airbyte",
+  "password": "password",
   "client_id": "your_client_id",
   "client_secret": "your_client_secret",
   "default_workspace_id": "ws_abc123",
@@ -185,6 +208,7 @@ python -m airbyte_cli config show
 
 # Set individual values
 python -m airbyte_cli config set --base-url https://airbyte.example.com/api/public/v1
+python -m airbyte_cli config set --username airbyte --password password
 python -m airbyte_cli config set --client-id YOUR_ID --client-secret YOUR_SECRET
 python -m airbyte_cli config set --workspace-id ws_abc123
 python -m airbyte_cli config set --format table
@@ -202,6 +226,8 @@ Available on every command:
 ```
 --base-url URL      Airbyte API base URL (overrides config)
 --token TOKEN       Bearer token (overrides config)
+--username USER     Basic auth username (overrides config)
+--password PASS     Basic auth password (overrides config)
 --format FORMAT     Output format: json | table | compact (default: json)
 --config-dir DIR    Config directory (default: ~/.config/airbyte-cli)
 --version           Show version and exit
@@ -622,7 +648,7 @@ airbyte-api-cli/
 │       ├── applications/
 │       ├── health/
 │       └── config_cmd/
-├── tests/                       # 333 unit tests (unittest)
+├── tests/                       # 330 unit tests (unittest)
 ├── agent/                       # Claude Code agent + skills
 │   ├── airbyte-manager.md
 │   └── skills/
