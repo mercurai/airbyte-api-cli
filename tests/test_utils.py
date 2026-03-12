@@ -79,5 +79,75 @@ class TestStripNone(unittest.TestCase):
         self.assertIn("b", d)  # original unchanged
 
 
+class TestPaginateAll(unittest.TestCase):
+    def _make_list_fn(self, pages):
+        """Build a mock list_fn that returns pages of ApiResponse objects.
+
+        Args:
+            pages: list of lists, each inner list is one page of records.
+        """
+        call_count = {"n": 0}
+
+        def list_fn(limit=100, offset=0, **kwargs):
+            idx = call_count["n"]
+            call_count["n"] += 1
+            data = pages[idx] if idx < len(pages) else []
+            resp = MagicMock(spec=ApiResponse)
+            resp.data = data
+            return resp
+
+        return list_fn
+
+    def test_single_page(self):
+        items = [{"id": "a"}, {"id": "b"}]
+        list_fn = self._make_list_fn([items])
+        result = paginate_all(list_fn, limit=100)
+        self.assertEqual(result, items)
+
+    def test_multiple_pages(self):
+        page1 = [{"id": i} for i in range(3)]
+        page2 = [{"id": i} for i in range(3, 6)]
+        page3 = [{"id": 6}]  # partial page signals end
+        list_fn = self._make_list_fn([page1, page2, page3])
+        result = paginate_all(list_fn, limit=3)
+        self.assertEqual(len(result), 7)
+        self.assertEqual(result[0], {"id": 0})
+        self.assertEqual(result[6], {"id": 6})
+
+    def test_empty_first_page(self):
+        list_fn = self._make_list_fn([[]])
+        result = paginate_all(list_fn, limit=100)
+        self.assertEqual(result, [])
+
+    def test_kwargs_forwarded(self):
+        """Ensure extra kwargs are passed through to list_fn."""
+        received = {}
+
+        def list_fn(limit=100, offset=0, **kwargs):
+            received.update(kwargs)
+            resp = MagicMock(spec=ApiResponse)
+            resp.data = []
+            return resp
+
+        paginate_all(list_fn, limit=10, workspace_ids=["ws-1"])
+        self.assertEqual(received["workspace_ids"], ["ws-1"])
+
+    def test_limit_offset_progression(self):
+        """Verify offset increases by limit on each call."""
+        calls = []
+
+        def list_fn(limit=100, offset=0, **kwargs):
+            calls.append({"limit": limit, "offset": offset})
+            resp = MagicMock(spec=ApiResponse)
+            # Return full page for first two calls, partial for third
+            resp.data = [{"id": i} for i in range(limit)] if len(calls) < 3 else [{"id": "last"}]
+            return resp
+
+        paginate_all(list_fn, limit=5)
+        self.assertEqual(calls[0]["offset"], 0)
+        self.assertEqual(calls[1]["offset"], 5)
+        self.assertEqual(calls[2]["offset"], 10)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -301,6 +301,29 @@ class TestSourcesCommands(unittest.TestCase):
         self.assertEqual(result, 1)
         mock_err.assert_called_once()
 
+    def test_handle_list_with_all_flag(self):
+        from airbyte_cli.plugins.sources.commands import _handle
+        ctx = self._make_context()
+        # First call returns full page, second returns partial (signals end)
+        ctx["_client"].request.side_effect = [
+            {"data": [{"sourceId": f"s{i}"} for i in range(3)]},
+            {"data": [{"sourceId": "s3"}]},
+        ]
+
+        args = MagicMock()
+        args.action = "list"
+        args.workspace_id = None
+        args.limit = 3
+        args.offset = 0
+        args.fetch_all = True
+
+        with patch("airbyte_cli.plugins.sources.commands.output") as mock_out:
+            result = _handle(args, ctx)
+        self.assertEqual(result, 0)
+        # Should have received all 4 items combined from both pages
+        called_data = mock_out.call_args[0][0]
+        self.assertEqual(len(called_data), 4)
+
 
 if __name__ == "__main__":
     unittest.main()
