@@ -13,7 +13,7 @@ This skill walks through the entire pipeline setup from health check to monitore
 ### 1. Check API health
 
 ```bash
-python -m airbyte_cli health
+python -m airbyte_api_cli health
 ```
 
 If the health check fails, stop here. Ask the user to verify their Airbyte instance URL
@@ -24,7 +24,7 @@ and credentials before proceeding.
 List existing workspaces:
 
 ```bash
-python -m airbyte_cli workspaces list
+python -m airbyte_api_cli workspaces list
 ```
 
 If the user wants to use an existing workspace, note its `workspaceId`. If they want
@@ -34,34 +34,34 @@ a new workspace, ask for the name and create it before continuing.
 
 Follow the /manage-sources skill steps:
 
-1. List source definitions: `python -m airbyte_cli source_definitions list`
+1. List source definitions: `python -m airbyte_api_cli source_definitions list`
 2. Ask the user to select a source type and provide connection config.
 3. Write config to `config.json` and create:
    ```bash
-   python -m airbyte_cli sources create \
+   python -m airbyte_api_cli sources create \
      --name "<source-name>" \
      --workspace-id "<workspace-id>" \
      --type "<sourceDefinitionId>" \
      --config @config.json
    ```
-4. Verify: `python -m airbyte_cli sources get --id <source-id>`
+4. Verify: `python -m airbyte_api_cli sources get --id <source-id>`
 5. Note the `sourceId`.
 
 ### 4. Create the destination
 
 Follow the /manage-destinations skill steps:
 
-1. List destination definitions: `python -m airbyte_cli destination_definitions list`
+1. List destination definitions: `python -m airbyte_api_cli destination_definitions list`
 2. Ask the user to select a destination type and provide connection config.
 3. Write config to `config.json` and create:
    ```bash
-   python -m airbyte_cli destinations create \
+   python -m airbyte_api_cli destinations create \
      --name "<destination-name>" \
      --workspace-id "<workspace-id>" \
      --type "<destinationDefinitionId>" \
      --config @config.json
    ```
-4. Verify: `python -m airbyte_cli destinations get --id <destination-id>`
+4. Verify: `python -m airbyte_api_cli destinations get --id <destination-id>`
 5. Note the `destinationId`.
 
 ### 5. Create the connection
@@ -69,7 +69,7 @@ Follow the /manage-destinations skill steps:
 Ask the user to choose streams, sync modes, and schedule. Then create:
 
 ```bash
-python -m airbyte_cli connections create \
+python -m airbyte_api_cli connections create \
   --source-id "<source-id>" \
   --destination-id "<destination-id>" \
   --name "<connection-name>" \
@@ -82,7 +82,7 @@ Note the `connectionId`.
 ### 6. Trigger the initial sync
 
 ```bash
-python -m airbyte_cli jobs trigger --connection-id <connection-id> --type sync
+python -m airbyte_api_cli jobs trigger --connection-id <connection-id> --type sync
 ```
 
 Note the `jobId`.
@@ -92,7 +92,7 @@ Note the `jobId`.
 Use /sync-status to poll the job until it reaches `succeeded` or `failed`:
 
 ```bash
-python -m airbyte_cli jobs get --id <job-id>
+python -m airbyte_api_cli jobs get --id <job-id>
 ```
 
 Report a final summary: records synced, bytes transferred, duration, and status.

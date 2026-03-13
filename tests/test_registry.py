@@ -2,7 +2,7 @@
 
 import unittest
 
-from airbyte_cli.core.registry import Registry, PluginInfo
+from airbyte_api_cli.core.registry import Registry, PluginInfo
 
 
 class TestRegistry(unittest.TestCase):

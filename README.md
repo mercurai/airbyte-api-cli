@@ -28,7 +28,7 @@ No installation required. Clone the repo and run directly:
 ```bash
 git clone https://github.com/mercurai/airbyte-api-cli.git
 cd airbyte-api-cli
-python -m airbyte_cli --version
+python -m airbyte_api_cli --version
 ```
 
 ## Quick Start
@@ -37,22 +37,22 @@ python -m airbyte_cli --version
 
 ```bash
 # Set your Airbyte API base URL
-python -m airbyte_cli config set --base-url https://your-airbyte.example.com/api/public/v1
+python -m airbyte_api_cli config set --base-url https://your-airbyte.example.com/api/public/v1
 
 # Option A: Basic auth (common for self-hosted Airbyte OSS)
-python -m airbyte_cli config set --username airbyte --password password
+python -m airbyte_api_cli config set --username airbyte --password password
 
 # Option B: Client credentials (recommended for Airbyte Cloud / automation)
-python -m airbyte_cli config set --client-id YOUR_CLIENT_ID --client-secret YOUR_CLIENT_SECRET
+python -m airbyte_api_cli config set --client-id YOUR_CLIENT_ID --client-secret YOUR_CLIENT_SECRET
 
 # Option C: Direct bearer token
-python -m airbyte_cli config set --token YOUR_BEARER_TOKEN
+python -m airbyte_api_cli config set --token YOUR_BEARER_TOKEN
 ```
 
 ### 2. Verify connectivity
 
 ```bash
-python -m airbyte_cli health
+python -m airbyte_api_cli health
 # {"available": true}
 ```
 
@@ -60,40 +60,40 @@ python -m airbyte_cli health
 
 ```bash
 # List workspaces
-python -m airbyte_cli workspaces list --format table
+python -m airbyte_api_cli workspaces list --format table
 
 # List sources in a workspace
-python -m airbyte_cli sources list --workspace-id <WS_ID>
+python -m airbyte_api_cli sources list --workspace-id <WS_ID>
 
 # Get details for a specific source
-python -m airbyte_cli sources get --id <SOURCE_ID>
+python -m airbyte_api_cli sources get --id <SOURCE_ID>
 ```
 
 ### 4. Create a data pipeline
 
 ```bash
 # Create a source
-python -m airbyte_cli sources create \
+python -m airbyte_api_cli sources create \
   --name "Production Postgres" \
   --workspace-id <WS_ID> \
   --type postgres \
   --config @postgres-config.json
 
 # Create a destination
-python -m airbyte_cli destinations create \
+python -m airbyte_api_cli destinations create \
   --name "Snowflake Warehouse" \
   --workspace-id <WS_ID> \
   --type snowflake \
   --config @snowflake-config.json
 
 # Connect them
-python -m airbyte_cli connections create \
+python -m airbyte_api_cli connections create \
   --source-id <SOURCE_ID> \
   --destination-id <DEST_ID> \
   --name "postgres-to-snowflake"
 
 # Trigger the first sync
-python -m airbyte_cli jobs trigger --connection-id <CONN_ID> --type sync
+python -m airbyte_api_cli jobs trigger --connection-id <CONN_ID> --type sync
 ```
 
 ---
@@ -108,14 +108,14 @@ Pass a pre-obtained bearer token. Skips all other auth methods.
 
 ```bash
 # Via CLI flag (per-invocation)
-python -m airbyte_cli --token eyJhbGciOi... sources list
+python -m airbyte_api_cli --token eyJhbGciOi... sources list
 
 # Via environment variable
 export AIRBYTE_TOKEN=eyJhbGciOi...
-python -m airbyte_cli sources list
+python -m airbyte_api_cli sources list
 
 # Via config file
-python -m airbyte_cli config set --token eyJhbGciOi...
+python -m airbyte_api_cli config set --token eyJhbGciOi...
 ```
 
 ### 2. Basic auth (common for self-hosted Airbyte OSS)
@@ -124,19 +124,19 @@ Username/password basic auth. The CLI sends a standard HTTP Basic `Authorization
 
 ```bash
 # Via CLI flags
-python -m airbyte_cli --username airbyte --password password workspaces list
+python -m airbyte_api_cli --username airbyte --password password workspaces list
 
 # Via environment variables
 export AIRBYTE_USERNAME=airbyte
 export AIRBYTE_PASSWORD=password
 
 # Via config file
-python -m airbyte_cli config set --username airbyte --password password
+python -m airbyte_api_cli config set --username airbyte --password password
 ```
 
 ### 3. Client credentials (recommended for Airbyte Cloud / automation)
 
-The CLI acquires a token via `POST /applications/token` using your application's client_id and client_secret. The token is cached to `~/.config/airbyte-cli/token.json` with its expiry timestamp. If the token expires (or a 401 is received), the CLI automatically refreshes it.
+The CLI acquires a token via `POST /applications/token` using your application's client_id and client_secret. The token is cached to `~/.config/airbyte-api-cli/token.json` with its expiry timestamp. If the token expires (or a 401 is received), the CLI automatically refreshes it.
 
 ```bash
 # Via environment variables
@@ -144,7 +144,7 @@ export AIRBYTE_CLIENT_ID=your_client_id
 export AIRBYTE_CLIENT_SECRET=your_client_secret
 
 # Or via config file
-python -m airbyte_cli config set --client-id YOUR_ID --client-secret YOUR_SECRET
+python -m airbyte_api_cli config set --client-id YOUR_ID --client-secret YOUR_SECRET
 ```
 
 Token expiry varies by deployment: ~900 seconds on Airbyte Cloud, ~3600 seconds on self-managed. A 60-second buffer is applied — the CLI refreshes if less than 60 seconds remain.
@@ -154,7 +154,7 @@ Token expiry varies by deployment: ~900 seconds on Airbyte Cloud, ~3600 seconds 
 If you don't have credentials yet, create an application through the CLI (requires an existing token or admin access):
 
 ```bash
-python -m airbyte_cli applications create --name "my-cli-app"
+python -m airbyte_api_cli applications create --name "my-cli-app"
 # Returns: {"applicationId": "...", "name": "my-cli-app", "clientId": "...", "clientSecret": "..."}
 ```
 
@@ -170,7 +170,7 @@ Save the `clientId` and `clientSecret` from the response and configure them as a
 |----------|--------|---------|
 | 1 | CLI flags | `--base-url`, `--token`, `--format` |
 | 2 | Environment variables | `AIRBYTE_BASE_URL`, `AIRBYTE_TOKEN`, etc. |
-| 3 | Config file | `~/.config/airbyte-cli/config.json` |
+| 3 | Config file | `~/.config/airbyte-api-cli/config.json` |
 
 ### Environment variables
 
@@ -186,7 +186,7 @@ Save the `clientId` and `clientSecret` from the response and configure them as a
 
 ### Config file
 
-Located at `~/.config/airbyte-cli/config.json` by default (override with `--config-dir`):
+Located at `~/.config/airbyte-api-cli/config.json` by default (override with `--config-dir`):
 
 ```json
 {
@@ -204,17 +204,17 @@ Located at `~/.config/airbyte-cli/config.json` by default (override with `--conf
 
 ```bash
 # Show current config (secrets masked)
-python -m airbyte_cli config show
+python -m airbyte_api_cli config show
 
 # Set individual values
-python -m airbyte_cli config set --base-url https://airbyte.example.com/api/public/v1
-python -m airbyte_cli config set --username airbyte --password password
-python -m airbyte_cli config set --client-id YOUR_ID --client-secret YOUR_SECRET
-python -m airbyte_cli config set --workspace-id ws_abc123
-python -m airbyte_cli config set --format table
+python -m airbyte_api_cli config set --base-url https://airbyte.example.com/api/public/v1
+python -m airbyte_api_cli config set --username airbyte --password password
+python -m airbyte_api_cli config set --client-id YOUR_ID --client-secret YOUR_SECRET
+python -m airbyte_api_cli config set --workspace-id ws_abc123
+python -m airbyte_api_cli config set --format table
 
 # Use a custom config directory
-python -m airbyte_cli --config-dir /path/to/config config show
+python -m airbyte_api_cli --config-dir /path/to/config config show
 ```
 
 ---
@@ -229,7 +229,7 @@ Available on every command:
 --username USER     Basic auth username (overrides config)
 --password PASS     Basic auth password (overrides config)
 --format FORMAT     Output format: json | table | compact (default: json)
---config-dir DIR    Config directory (default: ~/.config/airbyte-cli)
+--config-dir DIR    Config directory (default: ~/.config/airbyte-api-cli)
 --version           Show version and exit
 --help              Show help and exit
 ```
@@ -241,7 +241,7 @@ Available on every command:
 ### Health
 
 ```bash
-python -m airbyte_cli health
+python -m airbyte_api_cli health
 ```
 
 Returns `{"available": true}` if the Airbyte API is reachable.
@@ -252,13 +252,13 @@ Manage data sources (configured connector instances that read data).
 
 ```bash
 # List all sources (optionally filtered by workspace)
-python -m airbyte_cli sources list [--workspace-id WS_ID] [--limit 20] [--offset 0]
+python -m airbyte_api_cli sources list [--workspace-id WS_ID] [--limit 20] [--offset 0]
 
 # Get source details
-python -m airbyte_cli sources get --id <SOURCE_ID>
+python -m airbyte_api_cli sources get --id <SOURCE_ID>
 
 # Create a source
-python -m airbyte_cli sources create \
+python -m airbyte_api_cli sources create \
   --name "My Postgres" \
   --workspace-id <WS_ID> \
   --type postgres \
@@ -266,17 +266,17 @@ python -m airbyte_cli sources create \
   [--definition-id <DEF_ID>]
 
 # Partial update (PATCH) — only send changed fields
-python -m airbyte_cli sources update --id <SOURCE_ID> --data '{"name":"New Name"}'
+python -m airbyte_api_cli sources update --id <SOURCE_ID> --data '{"name":"New Name"}'
 
 # Full replace (PUT) — must send all fields
-python -m airbyte_cli sources replace --id <SOURCE_ID> \
+python -m airbyte_api_cli sources replace --id <SOURCE_ID> \
   --name "My Postgres" --workspace-id <WS_ID> --type postgres --config @config.json
 
 # Delete
-python -m airbyte_cli sources delete --id <SOURCE_ID>
+python -m airbyte_api_cli sources delete --id <SOURCE_ID>
 
 # Initiate OAuth flow
-python -m airbyte_cli sources oauth --data '{"sourceType":"google-sheets","workspaceId":"..."}'
+python -m airbyte_api_cli sources oauth --data '{"sourceType":"google-sheets","workspaceId":"..."}'
 ```
 
 ### Destinations
@@ -284,14 +284,14 @@ python -m airbyte_cli sources oauth --data '{"sourceType":"google-sheets","works
 Manage data destinations (configured connector instances that write data).
 
 ```bash
-python -m airbyte_cli destinations list [--workspace-id WS_ID] [--limit 20] [--offset 0]
-python -m airbyte_cli destinations get --id <DEST_ID>
-python -m airbyte_cli destinations create \
+python -m airbyte_api_cli destinations list [--workspace-id WS_ID] [--limit 20] [--offset 0]
+python -m airbyte_api_cli destinations get --id <DEST_ID>
+python -m airbyte_api_cli destinations create \
   --name "Snowflake" --workspace-id <WS_ID> --type snowflake --config @snowflake.json
-python -m airbyte_cli destinations update --id <DEST_ID> --data '{"name":"New Name"}'
-python -m airbyte_cli destinations replace --id <DEST_ID> \
+python -m airbyte_api_cli destinations update --id <DEST_ID> --data '{"name":"New Name"}'
+python -m airbyte_api_cli destinations replace --id <DEST_ID> \
   --name "Snowflake" --workspace-id <WS_ID> --type snowflake --config @snowflake.json
-python -m airbyte_cli destinations delete --id <DEST_ID>
+python -m airbyte_api_cli destinations delete --id <DEST_ID>
 ```
 
 ### Connections
@@ -300,13 +300,13 @@ Manage connections (links between a source and a destination with sync configura
 
 ```bash
 # List connections
-python -m airbyte_cli connections list [--workspace-id WS_ID] [--limit 20] [--offset 0]
+python -m airbyte_api_cli connections list [--workspace-id WS_ID] [--limit 20] [--offset 0]
 
 # Get connection details
-python -m airbyte_cli connections get --id <CONN_ID>
+python -m airbyte_api_cli connections get --id <CONN_ID>
 
 # Create a connection
-python -m airbyte_cli connections create \
+python -m airbyte_api_cli connections create \
   --source-id <SOURCE_ID> \
   --destination-id <DEST_ID> \
   [--name "my-pipeline"] \
@@ -318,10 +318,10 @@ python -m airbyte_cli connections create \
   [--prefix "prod_"]
 
 # Update a connection (PATCH)
-python -m airbyte_cli connections update --id <CONN_ID> --data '{"status":"inactive"}'
+python -m airbyte_api_cli connections update --id <CONN_ID> --data '{"status":"inactive"}'
 
 # Delete
-python -m airbyte_cli connections delete --id <CONN_ID>
+python -m airbyte_api_cli connections delete --id <CONN_ID>
 ```
 
 ### Jobs
@@ -330,7 +330,7 @@ Trigger and monitor sync operations.
 
 ```bash
 # List jobs (with optional filters)
-python -m airbyte_cli jobs list \
+python -m airbyte_api_cli jobs list \
   [--connection-id CONN_ID] \
   [--workspace-id WS_ID] \
   [--status pending|running|incomplete|failed|succeeded|cancelled] \
@@ -339,16 +339,16 @@ python -m airbyte_cli jobs list \
   [--limit 20] [--offset 0]
 
 # Get job details
-python -m airbyte_cli jobs get --id <JOB_ID>
+python -m airbyte_api_cli jobs get --id <JOB_ID>
 
 # Trigger a new job
-python -m airbyte_cli jobs trigger --connection-id <CONN_ID> --type sync
+python -m airbyte_api_cli jobs trigger --connection-id <CONN_ID> --type sync
 
 # Cancel a running job
-python -m airbyte_cli jobs cancel --id <JOB_ID>
+python -m airbyte_api_cli jobs cancel --id <JOB_ID>
 
 # Wait for a job to complete (polls every 15s by default)
-python -m airbyte_cli jobs wait --id <JOB_ID> [--interval 15] [--timeout 0]
+python -m airbyte_api_cli jobs wait --id <JOB_ID> [--interval 15] [--timeout 0]
 ```
 
 `jobs wait` polls until the job reaches a terminal state (`succeeded`, `failed`, `cancelled`). Progress is printed to stderr; the final job JSON goes to stdout. Exit code 0 = succeeded, 1 = failed/cancelled/timeout.
@@ -367,12 +367,12 @@ python -m airbyte_cli jobs wait --id <JOB_ID> [--interval 15] [--timeout 0]
 Manage workspaces (top-level organizational namespaces).
 
 ```bash
-python -m airbyte_cli workspaces list
-python -m airbyte_cli workspaces get --id <WS_ID>
-python -m airbyte_cli workspaces create --name "Production" [--organization-id ORG_ID] [--data-residency us]
-python -m airbyte_cli workspaces update --id <WS_ID> [--name "New Name"] [--data-residency eu]
-python -m airbyte_cli workspaces delete --id <WS_ID>
-python -m airbyte_cli workspaces oauth --id <WS_ID> --actor-type source --name "google" --config @oauth.json
+python -m airbyte_api_cli workspaces list
+python -m airbyte_api_cli workspaces get --id <WS_ID>
+python -m airbyte_api_cli workspaces create --name "Production" [--organization-id ORG_ID] [--data-residency us]
+python -m airbyte_api_cli workspaces update --id <WS_ID> [--name "New Name"] [--data-residency eu]
+python -m airbyte_api_cli workspaces delete --id <WS_ID>
+python -m airbyte_api_cli workspaces oauth --id <WS_ID> --actor-type source --name "google" --config @oauth.json
 ```
 
 ### Streams
@@ -380,7 +380,7 @@ python -m airbyte_cli workspaces oauth --id <WS_ID> --actor-type source --name "
 Inspect the stream catalog for a connection (read-only).
 
 ```bash
-python -m airbyte_cli streams get --connection-id <CONN_ID>
+python -m airbyte_api_cli streams get --connection-id <CONN_ID>
 ```
 
 Returns the list of available streams, their sync modes, and configuration.
@@ -390,24 +390,24 @@ Returns the list of available streams, their sync modes, and configuration.
 Manage user permissions within workspaces and organizations.
 
 ```bash
-python -m airbyte_cli permissions list [--limit 20] [--offset 0]
-python -m airbyte_cli permissions get --id <PERM_ID>
-python -m airbyte_cli permissions create --data '{"userId":"...","permissionType":"workspace_admin","workspaceId":"..."}'
-python -m airbyte_cli permissions update --id <PERM_ID> --data '{"permissionType":"workspace_reader"}'
-python -m airbyte_cli permissions delete --id <PERM_ID>
+python -m airbyte_api_cli permissions list [--limit 20] [--offset 0]
+python -m airbyte_api_cli permissions get --id <PERM_ID>
+python -m airbyte_api_cli permissions create --data '{"userId":"...","permissionType":"workspace_admin","workspaceId":"..."}'
+python -m airbyte_api_cli permissions update --id <PERM_ID> --data '{"permissionType":"workspace_reader"}'
+python -m airbyte_api_cli permissions delete --id <PERM_ID>
 ```
 
 ### Organizations
 
 ```bash
-python -m airbyte_cli organizations list [--limit 20] [--offset 0]
-python -m airbyte_cli organizations oauth --id <ORG_ID> --data '{"clientId":"...","clientSecret":"..."}'
+python -m airbyte_api_cli organizations list [--limit 20] [--offset 0]
+python -m airbyte_api_cli organizations oauth --id <ORG_ID> --data '{"clientId":"...","clientSecret":"..."}'
 ```
 
 ### Users
 
 ```bash
-python -m airbyte_cli users list --organization-id <ORG_ID> [--limit 20] [--offset 0]
+python -m airbyte_api_cli users list --organization-id <ORG_ID> [--limit 20] [--offset 0]
 ```
 
 ### Source Definitions
@@ -416,17 +416,17 @@ Manage connector types available for creating sources (e.g., Postgres, Stripe, M
 Uses the Airbyte internal config API (`/api/v1/`) — all operations are POST with JSON body.
 
 ```bash
-python -m airbyte_cli source_definitions list [--workspace-id <WS_ID>]
-python -m airbyte_cli source_definitions get --id <DEF_ID>
-python -m airbyte_cli source_definitions create \
+python -m airbyte_api_cli source_definitions list [--workspace-id <WS_ID>]
+python -m airbyte_api_cli source_definitions get --id <DEF_ID>
+python -m airbyte_api_cli source_definitions create \
   --name "Custom Source" \
   --docker-repository my-org/source-custom \
   --docker-image-tag 1.0.0 \
   [--documentation-url https://docs.example.com] \
   [--workspace-id <WS_ID>]
-python -m airbyte_cli source_definitions update --id <DEF_ID> \
+python -m airbyte_api_cli source_definitions update --id <DEF_ID> \
   --name "Custom Source" --docker-repository my-org/source-custom --docker-image-tag 1.1.0
-python -m airbyte_cli source_definitions delete --id <DEF_ID>
+python -m airbyte_api_cli source_definitions delete --id <DEF_ID>
 ```
 
 Without `--workspace-id`, `list` returns all definitions in the registry. With it, returns definitions available to that workspace.
@@ -436,17 +436,17 @@ Without `--workspace-id`, `list` returns all definitions in the registry. With i
 Manage connector types available for creating destinations. Same internal API pattern as source definitions.
 
 ```bash
-python -m airbyte_cli destination_definitions list [--workspace-id <WS_ID>]
-python -m airbyte_cli destination_definitions get --id <DEF_ID>
-python -m airbyte_cli destination_definitions create \
+python -m airbyte_api_cli destination_definitions list [--workspace-id <WS_ID>]
+python -m airbyte_api_cli destination_definitions get --id <DEF_ID>
+python -m airbyte_api_cli destination_definitions create \
   --name "Custom Dest" \
   --docker-repository my-org/dest-custom \
   --docker-image-tag 1.0.0 \
   [--documentation-url https://docs.example.com] \
   [--workspace-id <WS_ID>]
-python -m airbyte_cli destination_definitions update --id <DEF_ID> \
+python -m airbyte_api_cli destination_definitions update --id <DEF_ID> \
   --name "Custom Dest" --docker-repository my-org/dest-custom --docker-image-tag 1.1.0
-python -m airbyte_cli destination_definitions delete --id <DEF_ID>
+python -m airbyte_api_cli destination_definitions delete --id <DEF_ID>
 ```
 
 ### Declarative Source Definitions
@@ -454,17 +454,17 @@ python -m airbyte_cli destination_definitions delete --id <DEF_ID>
 Manage low-code connectors built with the [Airbyte CDK declarative framework](https://docs.airbyte.com/connector-development/config-based/). These are workspace-scoped manifests attached to an existing source definition (typically `airbyte/source-declarative-manifest`).
 
 ```bash
-python -m airbyte_cli declarative_source_definitions list \
+python -m airbyte_api_cli declarative_source_definitions list \
   --workspace-id <WS_ID> \
   --source-definition-id <DEF_ID>
-python -m airbyte_cli declarative_source_definitions create \
+python -m airbyte_api_cli declarative_source_definitions create \
   --workspace-id <WS_ID> \
   --source-definition-id <DEF_ID> \
   --manifest @manifest.json \
   [--spec @spec.json] \
   [--description "Reads from Example API"] \
   [--version 0]
-python -m airbyte_cli declarative_source_definitions update \
+python -m airbyte_api_cli declarative_source_definitions update \
   --workspace-id <WS_ID> \
   --source-definition-id <DEF_ID> \
   --manifest @manifest-v2.json \
@@ -479,11 +479,11 @@ Both `--manifest` and `--spec` accept inline JSON strings or `@file.json` file r
 Organize resources with workspace-scoped tags.
 
 ```bash
-python -m airbyte_cli tags list [--workspace-id WS_ID] [--limit 20] [--offset 0]
-python -m airbyte_cli tags get --id <TAG_ID>
-python -m airbyte_cli tags create --name "production" --workspace-id <WS_ID> [--color "#FF0000"]
-python -m airbyte_cli tags update --id <TAG_ID> [--name "staging"] [--color "#00FF00"]
-python -m airbyte_cli tags delete --id <TAG_ID>
+python -m airbyte_api_cli tags list [--workspace-id WS_ID] [--limit 20] [--offset 0]
+python -m airbyte_api_cli tags get --id <TAG_ID>
+python -m airbyte_api_cli tags create --name "production" --workspace-id <WS_ID> [--color "#FF0000"]
+python -m airbyte_api_cli tags update --id <TAG_ID> [--name "staging"] [--color "#00FF00"]
+python -m airbyte_api_cli tags delete --id <TAG_ID>
 ```
 
 ### Applications
@@ -491,11 +491,11 @@ python -m airbyte_cli tags delete --id <TAG_ID>
 Manage OAuth2 machine credentials for API access.
 
 ```bash
-python -m airbyte_cli applications list [--limit 20] [--offset 0]
-python -m airbyte_cli applications get --id <APP_ID>
-python -m airbyte_cli applications create --name "ci-bot"
-python -m airbyte_cli applications delete --id <APP_ID>
-python -m airbyte_cli applications token --id <APP_ID>
+python -m airbyte_api_cli applications list [--limit 20] [--offset 0]
+python -m airbyte_api_cli applications get --id <APP_ID>
+python -m airbyte_api_cli applications create --name "ci-bot"
+python -m airbyte_api_cli applications delete --id <APP_ID>
+python -m airbyte_api_cli applications token --id <APP_ID>
 ```
 
 `applications create` returns the `clientId` and `clientSecret` needed for authentication. `applications token` generates a short-lived access token for a specific application.
@@ -511,7 +511,7 @@ Control output with `--format`:
 Full JSON output, suitable for scripting and agent consumption:
 
 ```bash
-python -m airbyte_cli sources list
+python -m airbyte_api_cli sources list
 ```
 ```json
 [
@@ -529,7 +529,7 @@ python -m airbyte_cli sources list
 Human-readable aligned columns:
 
 ```bash
-python -m airbyte_cli sources list --format table
+python -m airbyte_api_cli sources list --format table
 ```
 ```
 SOURCEID  NAME                 SOURCETYPE  WORKSPACEID
@@ -543,7 +543,7 @@ def456    Staging MySQL        mysql       ws_001
 One line per record, pipe-delimited — ideal for `grep`, `awk`, `cut`:
 
 ```bash
-python -m airbyte_cli sources list --format compact
+python -m airbyte_api_cli sources list --format compact
 ```
 ```
 abc123|Production Postgres|postgres|ws_001
@@ -558,10 +558,10 @@ Any flag that accepts JSON (`--config`, `--data`, `--manifest`, `--schedule`, `-
 
 ```bash
 # Inline JSON string
-python -m airbyte_cli sources create --config '{"host":"localhost","port":5432}'
+python -m airbyte_api_cli sources create --config '{"host":"localhost","port":5432}'
 
 # File reference (prefix with @)
-python -m airbyte_cli sources create --config @path/to/config.json
+python -m airbyte_api_cli sources create --config @path/to/config.json
 ```
 
 File references are relative to the current working directory.
@@ -574,10 +574,10 @@ List commands return one page by default (20 records). Use `--limit` and `--offs
 
 ```bash
 # Single page
-python -m airbyte_cli sources list --limit 50 --offset 0
+python -m airbyte_api_cli sources list --limit 50 --offset 0
 
 # Fetch all records (auto-paginates)
-python -m airbyte_cli sources list --all
+python -m airbyte_api_cli sources list --all
 ```
 
 `--all` is available on all list commands that support pagination (sources, destinations, connections, jobs, tags, applications, organizations, users). It fetches pages of `--limit` size (default 20) until all records are returned.
@@ -608,7 +608,7 @@ This allows scripts to parse errors separately from stdout data:
 
 ```bash
 # Capture data and errors separately
-python -m airbyte_cli sources get --id bad-id 2>error.json
+python -m airbyte_api_cli sources get --id bad-id 2>error.json
 ```
 
 ### Retry behavior
@@ -625,8 +625,8 @@ No retry on 4xx client errors or 401 auth errors.
 
 ```
 airbyte-api-cli/
-├── airbyte_cli/
-│   ├── __main__.py              # CLI entry point (python -m airbyte_cli)
+├── airbyte_api_cli/
+│   ├── __main__.py              # CLI entry point (python -m airbyte_api_cli)
 │   ├── __init__.py              # Package version
 │   ├── core/                    # Framework layer
 │   │   ├── client.py            # HTTP client (urllib.request + retry + auth)
@@ -685,9 +685,9 @@ Simpler resources (health, streams, users, organizations) omit `models.py` when 
 
 ### Adding a new plugin
 
-1. Create `airbyte_cli/plugins/my_resource/` with `__init__.py`, `commands.py`, `api.py`, `models.py`
+1. Create `airbyte_api_cli/plugins/my_resource/` with `__init__.py`, `commands.py`, `api.py`, `models.py`
 2. In `__init__.py`, call `Registry.instance().register("my_resource", register_commands)`
-3. Add `from airbyte_cli.plugins import my_resource` to `plugins/__init__.py`
+3. Add `from airbyte_api_cli.plugins import my_resource` to `plugins/__init__.py`
 4. Create `tests/test_plugins/test_my_resource.py`
 
 No changes to the core framework are needed.
@@ -754,14 +754,14 @@ python -m unittest tests.test_plugins.test_sources.TestSourcesApi.test_list_retu
 
 ```bash
 # Trigger sync and wait for it to finish
-JOB_JSON=$(python -m airbyte_cli jobs trigger --connection-id <CONN_ID> --type sync)
+JOB_JSON=$(python -m airbyte_api_cli jobs trigger --connection-id <CONN_ID> --type sync)
 JOB_ID=$(echo "$JOB_JSON" | python -c "import sys,json; print(json.load(sys.stdin)['jobId'])")
 
 # Wait for terminal state (polls every 15s, prints progress to stderr)
-python -m airbyte_cli jobs wait --id "$JOB_ID"
+python -m airbyte_api_cli jobs wait --id "$JOB_ID"
 
 # Or with custom interval and timeout
-python -m airbyte_cli jobs wait --id "$JOB_ID" --interval 10 --timeout 3600
+python -m airbyte_api_cli jobs wait --id "$JOB_ID" --interval 10 --timeout 3600
 ```
 
 `jobs wait` exits with code 0 on success, 1 on failure/cancellation/timeout. The final job state is printed to stdout as JSON.
@@ -770,27 +770,27 @@ python -m airbyte_cli jobs wait --id "$JOB_ID" --interval 10 --timeout 3600
 
 ```bash
 # 1. Check API health
-python -m airbyte_cli health
+python -m airbyte_api_cli health
 
 # 2. Find the failed job
-python -m airbyte_cli jobs list --connection-id <CONN_ID> --status failed --limit 5
+python -m airbyte_api_cli jobs list --connection-id <CONN_ID> --status failed --limit 5
 
 # 3. Get failure details
-python -m airbyte_cli jobs get --id <JOB_ID>
+python -m airbyte_api_cli jobs get --id <JOB_ID>
 
 # 4. Inspect the connection and its source/destination
-python -m airbyte_cli connections get --id <CONN_ID>
-python -m airbyte_cli sources get --id <SOURCE_ID>
-python -m airbyte_cli destinations get --id <DEST_ID>
+python -m airbyte_api_cli connections get --id <CONN_ID>
+python -m airbyte_api_cli sources get --id <SOURCE_ID>
+python -m airbyte_api_cli destinations get --id <DEST_ID>
 
 # 5. After fixing the issue, re-trigger
-python -m airbyte_cli jobs trigger --connection-id <CONN_ID> --type sync
+python -m airbyte_api_cli jobs trigger --connection-id <CONN_ID> --type sync
 ```
 
 ### Bulk export all sources as JSON
 
 ```bash
-python -m airbyte_cli sources list --limit 100 > sources.json
+python -m airbyte_api_cli sources list --limit 100 > sources.json
 ```
 
 ---

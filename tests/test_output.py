@@ -6,7 +6,7 @@ import sys
 import unittest
 from unittest.mock import patch
 
-from airbyte_cli.core.output import (
+from airbyte_api_cli.core.output import (
     error,
     format_compact,
     format_json,

@@ -6,10 +6,10 @@ import json
 import unittest
 from unittest.mock import MagicMock, patch
 
-from airbyte_cli.core.registry import Registry
-from airbyte_cli.models.common import ApiResponse
-from airbyte_cli.plugins.sources.api import SourcesApi
-from airbyte_cli.plugins.sources.models import Source, SourceCreate
+from airbyte_api_cli.core.registry import Registry
+from airbyte_api_cli.models.common import ApiResponse
+from airbyte_api_cli.plugins.sources.api import SourcesApi
+from airbyte_api_cli.plugins.sources.models import Source, SourceCreate
 
 
 class TestSourceModel(unittest.TestCase):
@@ -172,8 +172,8 @@ class TestSourcesPluginRegistration(unittest.TestCase):
 
     def test_plugin_registers_on_import(self):
         import importlib
-        import airbyte_cli.plugins.sources
-        importlib.reload(airbyte_cli.plugins.sources)
+        import airbyte_api_cli.plugins.sources
+        importlib.reload(airbyte_api_cli.plugins.sources)
         plugin = Registry.instance().get_plugin("sources")
         self.assertIsNotNone(plugin)
         self.assertEqual(plugin.name, "sources")
@@ -187,7 +187,7 @@ class TestSourcesCommands(unittest.TestCase):
         return {"get_client": lambda: client, "format": "json", "_client": client}
 
     def test_handle_list(self):
-        from airbyte_cli.plugins.sources.commands import _handle
+        from airbyte_api_cli.plugins.sources.commands import _handle
         ctx = self._make_context()
         ctx["_client"].request.return_value = {"data": [{"sourceId": "s1"}]}
 
@@ -197,13 +197,13 @@ class TestSourcesCommands(unittest.TestCase):
         args.limit = 20
         args.offset = 0
 
-        with patch("airbyte_cli.plugins.sources.commands.output") as mock_out:
+        with patch("airbyte_api_cli.plugins.sources.commands.output") as mock_out:
             result = _handle(args, ctx)
         self.assertEqual(result, 0)
         mock_out.assert_called_once()
 
     def test_handle_get(self):
-        from airbyte_cli.plugins.sources.commands import _handle
+        from airbyte_api_cli.plugins.sources.commands import _handle
         ctx = self._make_context()
         ctx["_client"].request.return_value = {"sourceId": "s1"}
 
@@ -211,12 +211,12 @@ class TestSourcesCommands(unittest.TestCase):
         args.action = "get"
         args.source_id = "s1"
 
-        with patch("airbyte_cli.plugins.sources.commands.output") as mock_out:
+        with patch("airbyte_api_cli.plugins.sources.commands.output") as mock_out:
             result = _handle(args, ctx)
         self.assertEqual(result, 0)
 
     def test_handle_create(self):
-        from airbyte_cli.plugins.sources.commands import _handle
+        from airbyte_api_cli.plugins.sources.commands import _handle
         ctx = self._make_context()
         ctx["_client"].request.return_value = {"sourceId": "new"}
 
@@ -228,12 +228,12 @@ class TestSourcesCommands(unittest.TestCase):
         args.configuration = '{"host": "localhost"}'
         args.definition_id = ""
 
-        with patch("airbyte_cli.plugins.sources.commands.output") as mock_out:
+        with patch("airbyte_api_cli.plugins.sources.commands.output") as mock_out:
             result = _handle(args, ctx)
         self.assertEqual(result, 0)
 
     def test_handle_update(self):
-        from airbyte_cli.plugins.sources.commands import _handle
+        from airbyte_api_cli.plugins.sources.commands import _handle
         ctx = self._make_context()
         ctx["_client"].request.return_value = {"sourceId": "s1"}
 
@@ -242,12 +242,12 @@ class TestSourcesCommands(unittest.TestCase):
         args.source_id = "s1"
         args.data = '{"name": "New Name"}'
 
-        with patch("airbyte_cli.plugins.sources.commands.output"):
+        with patch("airbyte_api_cli.plugins.sources.commands.output"):
             result = _handle(args, ctx)
         self.assertEqual(result, 0)
 
     def test_handle_replace(self):
-        from airbyte_cli.plugins.sources.commands import _handle
+        from airbyte_api_cli.plugins.sources.commands import _handle
         ctx = self._make_context()
         ctx["_client"].request.return_value = {"sourceId": "s1"}
 
@@ -260,12 +260,12 @@ class TestSourcesCommands(unittest.TestCase):
         args.configuration = "{}"
         args.definition_id = ""
 
-        with patch("airbyte_cli.plugins.sources.commands.output"):
+        with patch("airbyte_api_cli.plugins.sources.commands.output"):
             result = _handle(args, ctx)
         self.assertEqual(result, 0)
 
     def test_handle_delete(self):
-        from airbyte_cli.plugins.sources.commands import _handle
+        from airbyte_api_cli.plugins.sources.commands import _handle
         ctx = self._make_context()
         ctx["_client"].request.return_value = {}
 
@@ -277,7 +277,7 @@ class TestSourcesCommands(unittest.TestCase):
         self.assertEqual(result, 0)
 
     def test_handle_oauth(self):
-        from airbyte_cli.plugins.sources.commands import _handle
+        from airbyte_api_cli.plugins.sources.commands import _handle
         ctx = self._make_context()
         ctx["_client"].request.return_value = {"redirectUrl": "https://oauth.example.com"}
 
@@ -285,24 +285,24 @@ class TestSourcesCommands(unittest.TestCase):
         args.action = "oauth"
         args.data = '{"workspaceId": "ws-1", "sourceType": "github"}'
 
-        with patch("airbyte_cli.plugins.sources.commands.output"):
+        with patch("airbyte_api_cli.plugins.sources.commands.output"):
             result = _handle(args, ctx)
         self.assertEqual(result, 0)
 
     def test_handle_unknown_action(self):
-        from airbyte_cli.plugins.sources.commands import _handle
+        from airbyte_api_cli.plugins.sources.commands import _handle
         ctx = self._make_context()
 
         args = MagicMock()
         args.action = "unknown"
 
-        with patch("airbyte_cli.plugins.sources.commands.error") as mock_err:
+        with patch("airbyte_api_cli.plugins.sources.commands.error") as mock_err:
             result = _handle(args, ctx)
         self.assertEqual(result, 1)
         mock_err.assert_called_once()
 
     def test_handle_list_with_all_flag(self):
-        from airbyte_cli.plugins.sources.commands import _handle
+        from airbyte_api_cli.plugins.sources.commands import _handle
         ctx = self._make_context()
         # First call returns full page, second returns partial (signals end)
         ctx["_client"].request.side_effect = [
@@ -317,7 +317,7 @@ class TestSourcesCommands(unittest.TestCase):
         args.offset = 0
         args.fetch_all = True
 
-        with patch("airbyte_cli.plugins.sources.commands.output") as mock_out:
+        with patch("airbyte_api_cli.plugins.sources.commands.output") as mock_out:
             result = _handle(args, ctx)
         self.assertEqual(result, 0)
         # Should have received all 4 items combined from both pages

@@ -4,9 +4,9 @@ import argparse
 import unittest
 from unittest.mock import MagicMock
 
-from airbyte_cli.plugins.destination_definitions.api import DestinationDefinitionsApi
-from airbyte_cli.plugins.destination_definitions.models import DestinationDefinitionCreate
-from airbyte_cli.models.common import ApiResponse
+from airbyte_api_cli.plugins.destination_definitions.api import DestinationDefinitionsApi
+from airbyte_api_cli.plugins.destination_definitions.models import DestinationDefinitionCreate
+from airbyte_api_cli.models.common import ApiResponse
 
 
 def _ctx(mock_client):
@@ -119,7 +119,7 @@ class TestDestinationDefinitionsApi(unittest.TestCase):
 
 class TestDestinationDefinitionsCommands(unittest.TestCase):
     def test_list_command_registered(self):
-        from airbyte_cli.plugins.destination_definitions.commands import register_commands
+        from airbyte_api_cli.plugins.destination_definitions.commands import register_commands
 
         parser = argparse.ArgumentParser()
         sub = parser.add_subparsers()
@@ -128,7 +128,7 @@ class TestDestinationDefinitionsCommands(unittest.TestCase):
         self.assertEqual(args.action, "list")
 
     def test_get_command_requires_id(self):
-        from airbyte_cli.plugins.destination_definitions.commands import register_commands
+        from airbyte_api_cli.plugins.destination_definitions.commands import register_commands
 
         parser = argparse.ArgumentParser()
         sub = parser.add_subparsers()
@@ -137,14 +137,14 @@ class TestDestinationDefinitionsCommands(unittest.TestCase):
         self.assertEqual(args.definition_id, "dd1")
 
     def test_handle_no_action_returns_1(self):
-        from airbyte_cli.plugins.destination_definitions.commands import _handle
+        from airbyte_api_cli.plugins.destination_definitions.commands import _handle
 
         args = argparse.Namespace(action=None)
         result = _handle(args, _ctx(MagicMock()))
         self.assertEqual(result, 1)
 
     def test_handle_list_calls_api(self):
-        from airbyte_cli.plugins.destination_definitions.commands import _handle
+        from airbyte_api_cli.plugins.destination_definitions.commands import _handle
 
         mock_client = MagicMock()
         mock_client.request.return_value = {"destinationDefinitions": []}
@@ -156,7 +156,7 @@ class TestDestinationDefinitionsCommands(unittest.TestCase):
         )
 
     def test_handle_get_calls_api(self):
-        from airbyte_cli.plugins.destination_definitions.commands import _handle
+        from airbyte_api_cli.plugins.destination_definitions.commands import _handle
 
         mock_client = MagicMock()
         mock_client.request.return_value = {"destinationDefinitionId": "dd1"}
@@ -165,7 +165,7 @@ class TestDestinationDefinitionsCommands(unittest.TestCase):
         self.assertEqual(result, 0)
 
     def test_handle_create_calls_api(self):
-        from airbyte_cli.plugins.destination_definitions.commands import _handle
+        from airbyte_api_cli.plugins.destination_definitions.commands import _handle
 
         mock_client = MagicMock()
         mock_client.request.return_value = {"destinationDefinitionId": "dd2"}
@@ -184,7 +184,7 @@ class TestDestinationDefinitionsCommands(unittest.TestCase):
         self.assertEqual(call_body["destinationDefinition"]["name"], "BigQuery")
 
     def test_handle_delete_calls_api(self):
-        from airbyte_cli.plugins.destination_definitions.commands import _handle
+        from airbyte_api_cli.plugins.destination_definitions.commands import _handle
 
         mock_client = MagicMock()
         mock_client.request.return_value = {}

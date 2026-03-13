@@ -1,0 +1,18 @@
+"""Plugin auto-discovery. Imports all plugin packages to trigger registration."""
+
+from airbyte_api_cli.plugins import applications  # noqa: F401
+from airbyte_api_cli.plugins import config_cmd  # noqa: F401
+from airbyte_api_cli.plugins import connections  # noqa: F401
+from airbyte_api_cli.plugins import destinations  # noqa: F401
+from airbyte_api_cli.plugins import health  # noqa: F401
+from airbyte_api_cli.plugins import jobs  # noqa: F401
+from airbyte_api_cli.plugins import sources  # noqa: F401
+from airbyte_api_cli.plugins import tags  # noqa: F401
+from airbyte_api_cli.plugins import workspaces  # noqa: F401
+from airbyte_api_cli.plugins import streams  # noqa: F401
+from airbyte_api_cli.plugins import permissions  # noqa: F401
+from airbyte_api_cli.plugins import organizations  # noqa: F401
+from airbyte_api_cli.plugins import users  # noqa: F401
+from airbyte_api_cli.plugins import source_definitions  # noqa: F401
+from airbyte_api_cli.plugins import destination_definitions  # noqa: F401
+from airbyte_api_cli.plugins import declarative_source_definitions  # noqa: F401

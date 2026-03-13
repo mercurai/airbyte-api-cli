@@ -3,9 +3,9 @@
 import unittest
 from unittest.mock import MagicMock
 
-from airbyte_cli.plugins.declarative_source_definitions.api import DeclarativeSourceDefinitionsApi
-from airbyte_cli.plugins.declarative_source_definitions.models import DeclarativeSourceDefinitionCreate
-from airbyte_cli.models.common import ApiResponse
+from airbyte_api_cli.plugins.declarative_source_definitions.api import DeclarativeSourceDefinitionsApi
+from airbyte_api_cli.plugins.declarative_source_definitions.models import DeclarativeSourceDefinitionCreate
+from airbyte_api_cli.models.common import ApiResponse
 
 
 def _ctx(mock_client):
@@ -107,7 +107,7 @@ class TestDeclarativeSourceDefinitionsApi(unittest.TestCase):
 class TestDeclarativeSourceDefinitionsCommands(unittest.TestCase):
     def test_list_command_registered(self):
         import argparse
-        from airbyte_cli.plugins.declarative_source_definitions.commands import register_commands
+        from airbyte_api_cli.plugins.declarative_source_definitions.commands import register_commands
 
         parser = argparse.ArgumentParser()
         sub = parser.add_subparsers()
@@ -123,7 +123,7 @@ class TestDeclarativeSourceDefinitionsCommands(unittest.TestCase):
 
     def test_handle_no_action_returns_1(self):
         import argparse
-        from airbyte_cli.plugins.declarative_source_definitions.commands import _handle
+        from airbyte_api_cli.plugins.declarative_source_definitions.commands import _handle
 
         args = argparse.Namespace(action=None)
         result = _handle(args, _ctx(MagicMock()))
@@ -131,7 +131,7 @@ class TestDeclarativeSourceDefinitionsCommands(unittest.TestCase):
 
     def test_handle_list_calls_api(self):
         import argparse
-        from airbyte_cli.plugins.declarative_source_definitions.commands import _handle
+        from airbyte_api_cli.plugins.declarative_source_definitions.commands import _handle
 
         mock_client = MagicMock()
         mock_client.request.return_value = {"manifestVersions": []}
@@ -148,7 +148,7 @@ class TestDeclarativeSourceDefinitionsCommands(unittest.TestCase):
 
     def test_handle_create_calls_api(self):
         import argparse
-        from airbyte_cli.plugins.declarative_source_definitions.commands import _handle
+        from airbyte_api_cli.plugins.declarative_source_definitions.commands import _handle
 
         mock_client = MagicMock()
         mock_client.request.return_value = {}
@@ -170,7 +170,7 @@ class TestDeclarativeSourceDefinitionsCommands(unittest.TestCase):
 
     def test_handle_update_calls_api(self):
         import argparse
-        from airbyte_cli.plugins.declarative_source_definitions.commands import _handle
+        from airbyte_api_cli.plugins.declarative_source_definitions.commands import _handle
 
         mock_client = MagicMock()
         mock_client.request.return_value = {}

@@ -11,7 +11,7 @@ disable-model-invocation: true
 ### 1. Check API health
 
 ```bash
-python -m airbyte_cli health
+python -m airbyte_api_cli health
 ```
 
 If health check fails, stop and tell the user to verify their Airbyte instance is running
@@ -20,7 +20,7 @@ and that credentials/base URL are configured correctly.
 ### 2. List workspaces
 
 ```bash
-python -m airbyte_cli workspaces list
+python -m airbyte_api_cli workspaces list
 ```
 
 Ask the user to confirm which workspace ID to use if more than one is returned.
@@ -28,7 +28,7 @@ Ask the user to confirm which workspace ID to use if more than one is returned.
 ### 3. List available source definitions
 
 ```bash
-python -m airbyte_cli source_definitions list
+python -m airbyte_api_cli source_definitions list
 ```
 
 Ask the user to select the source type (e.g., Postgres, GitHub, Stripe) and note the
@@ -56,7 +56,7 @@ Example `config.json` for a Postgres source:
 ### 5. Create the source
 
 ```bash
-python -m airbyte_cli sources create \
+python -m airbyte_api_cli sources create \
   --name "<source-name>" \
   --workspace-id "<workspace-id>" \
   --type "<sourceDefinitionId>" \
@@ -68,7 +68,7 @@ Note the `sourceId` returned in the response.
 ### 6. Verify the source was created
 
 ```bash
-python -m airbyte_cli sources get --id <new_source_id>
+python -m airbyte_api_cli sources get --id <new_source_id>
 ```
 
 Confirm the source status is valid and the connection test passes. If the test fails,

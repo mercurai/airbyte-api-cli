@@ -6,10 +6,10 @@ import json
 import unittest
 from unittest.mock import MagicMock, patch
 
-from airbyte_cli.core.registry import Registry
-from airbyte_cli.models.common import ApiResponse
-from airbyte_cli.plugins.destinations.api import DestinationsApi
-from airbyte_cli.plugins.destinations.models import Destination, DestinationCreate
+from airbyte_api_cli.core.registry import Registry
+from airbyte_api_cli.models.common import ApiResponse
+from airbyte_api_cli.plugins.destinations.api import DestinationsApi
+from airbyte_api_cli.plugins.destinations.models import Destination, DestinationCreate
 
 
 class TestDestinationModel(unittest.TestCase):
@@ -168,8 +168,8 @@ class TestDestinationsPluginRegistration(unittest.TestCase):
 
     def test_plugin_registers_on_import(self):
         import importlib
-        import airbyte_cli.plugins.destinations
-        importlib.reload(airbyte_cli.plugins.destinations)
+        import airbyte_api_cli.plugins.destinations
+        importlib.reload(airbyte_api_cli.plugins.destinations)
         plugin = Registry.instance().get_plugin("destinations")
         self.assertIsNotNone(plugin)
         self.assertEqual(plugin.name, "destinations")
@@ -183,7 +183,7 @@ class TestDestinationsCommands(unittest.TestCase):
         return {"get_client": lambda: client, "format": "json", "_client": client}
 
     def test_handle_list(self):
-        from airbyte_cli.plugins.destinations.commands import _handle
+        from airbyte_api_cli.plugins.destinations.commands import _handle
         ctx = self._make_context()
         ctx["_client"].request.return_value = {"data": [{"destinationId": "d1"}]}
 
@@ -193,13 +193,13 @@ class TestDestinationsCommands(unittest.TestCase):
         args.limit = 20
         args.offset = 0
 
-        with patch("airbyte_cli.plugins.destinations.commands.output") as mock_out:
+        with patch("airbyte_api_cli.plugins.destinations.commands.output") as mock_out:
             result = _handle(args, ctx)
         self.assertEqual(result, 0)
         mock_out.assert_called_once()
 
     def test_handle_get(self):
-        from airbyte_cli.plugins.destinations.commands import _handle
+        from airbyte_api_cli.plugins.destinations.commands import _handle
         ctx = self._make_context()
         ctx["_client"].request.return_value = {"destinationId": "d1"}
 
@@ -207,12 +207,12 @@ class TestDestinationsCommands(unittest.TestCase):
         args.action = "get"
         args.destination_id = "d1"
 
-        with patch("airbyte_cli.plugins.destinations.commands.output"):
+        with patch("airbyte_api_cli.plugins.destinations.commands.output"):
             result = _handle(args, ctx)
         self.assertEqual(result, 0)
 
     def test_handle_create(self):
-        from airbyte_cli.plugins.destinations.commands import _handle
+        from airbyte_api_cli.plugins.destinations.commands import _handle
         ctx = self._make_context()
         ctx["_client"].request.return_value = {"destinationId": "new"}
 
@@ -224,12 +224,12 @@ class TestDestinationsCommands(unittest.TestCase):
         args.configuration = '{"project_id": "proj"}'
         args.definition_id = ""
 
-        with patch("airbyte_cli.plugins.destinations.commands.output"):
+        with patch("airbyte_api_cli.plugins.destinations.commands.output"):
             result = _handle(args, ctx)
         self.assertEqual(result, 0)
 
     def test_handle_update(self):
-        from airbyte_cli.plugins.destinations.commands import _handle
+        from airbyte_api_cli.plugins.destinations.commands import _handle
         ctx = self._make_context()
         ctx["_client"].request.return_value = {"destinationId": "d1"}
 
@@ -238,12 +238,12 @@ class TestDestinationsCommands(unittest.TestCase):
         args.destination_id = "d1"
         args.data = '{"name": "New Name"}'
 
-        with patch("airbyte_cli.plugins.destinations.commands.output"):
+        with patch("airbyte_api_cli.plugins.destinations.commands.output"):
             result = _handle(args, ctx)
         self.assertEqual(result, 0)
 
     def test_handle_replace(self):
-        from airbyte_cli.plugins.destinations.commands import _handle
+        from airbyte_api_cli.plugins.destinations.commands import _handle
         ctx = self._make_context()
         ctx["_client"].request.return_value = {"destinationId": "d1"}
 
@@ -256,12 +256,12 @@ class TestDestinationsCommands(unittest.TestCase):
         args.configuration = "{}"
         args.definition_id = ""
 
-        with patch("airbyte_cli.plugins.destinations.commands.output"):
+        with patch("airbyte_api_cli.plugins.destinations.commands.output"):
             result = _handle(args, ctx)
         self.assertEqual(result, 0)
 
     def test_handle_delete(self):
-        from airbyte_cli.plugins.destinations.commands import _handle
+        from airbyte_api_cli.plugins.destinations.commands import _handle
         ctx = self._make_context()
         ctx["_client"].request.return_value = {}
 
@@ -273,13 +273,13 @@ class TestDestinationsCommands(unittest.TestCase):
         self.assertEqual(result, 0)
 
     def test_handle_unknown_action(self):
-        from airbyte_cli.plugins.destinations.commands import _handle
+        from airbyte_api_cli.plugins.destinations.commands import _handle
         ctx = self._make_context()
 
         args = MagicMock()
         args.action = "unknown"
 
-        with patch("airbyte_cli.plugins.destinations.commands.error") as mock_err:
+        with patch("airbyte_api_cli.plugins.destinations.commands.error") as mock_err:
             result = _handle(args, ctx)
         self.assertEqual(result, 1)
         mock_err.assert_called_once()

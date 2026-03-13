@@ -6,10 +6,10 @@ import argparse
 import unittest
 from unittest.mock import MagicMock, patch
 
-from airbyte_cli.core.registry import Registry
-from airbyte_cli.plugins.workspaces import api
-from airbyte_cli.plugins.workspaces.commands import register_commands, _handle
-from airbyte_cli.plugins.workspaces.models import Workspace, OAuthCredentials
+from airbyte_api_cli.core.registry import Registry
+from airbyte_api_cli.plugins.workspaces import api
+from airbyte_api_cli.plugins.workspaces.commands import register_commands, _handle
+from airbyte_api_cli.plugins.workspaces.models import Workspace, OAuthCredentials
 
 
 def _make_client(return_value=None):
@@ -125,7 +125,7 @@ class TestWorkspacesCommands(unittest.TestCase):
             for k, v in extra_attrs.items():
                 setattr(args, k, v)
         ctx = _make_context(client)
-        with patch("airbyte_cli.plugins.workspaces.commands.output") as mock_out:
+        with patch("airbyte_api_cli.plugins.workspaces.commands.output") as mock_out:
             code = _handle(args, ctx)
         return code, mock_out
 
@@ -172,7 +172,7 @@ class TestWorkspacesCommands(unittest.TestCase):
             config='{"token": "abc"}',
         )
         ctx = _make_context(client)
-        with patch("airbyte_cli.plugins.workspaces.commands.output"):
+        with patch("airbyte_api_cli.plugins.workspaces.commands.output"):
             code = _handle(args, ctx)
         self.assertEqual(code, 0)
 
@@ -187,7 +187,7 @@ class TestWorkspacesCommands(unittest.TestCase):
             config="not-json",
         )
         ctx = _make_context(client)
-        with patch("airbyte_cli.plugins.workspaces.commands.error") as mock_err:
+        with patch("airbyte_api_cli.plugins.workspaces.commands.error") as mock_err:
             code = _handle(args, ctx)
         self.assertEqual(code, 1)
         mock_err.assert_called_once()

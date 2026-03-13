@@ -13,7 +13,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from airbyte_cli.__main__ import main
+from airbyte_api_cli.__main__ import main
 
 
 def _make_config_dir(**overrides):

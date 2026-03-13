@@ -5,10 +5,10 @@ from __future__ import annotations
 import unittest
 from unittest.mock import MagicMock, patch
 
-from airbyte_cli.core.registry import Registry
-from airbyte_cli.models.common import ApiResponse
-from airbyte_cli.plugins.tags.api import TagsApi
-from airbyte_cli.plugins.tags.models import Tag
+from airbyte_api_cli.core.registry import Registry
+from airbyte_api_cli.models.common import ApiResponse
+from airbyte_api_cli.plugins.tags.api import TagsApi
+from airbyte_api_cli.plugins.tags.models import Tag
 
 
 class TestTagModel(unittest.TestCase):
@@ -81,12 +81,12 @@ class TestTagsCommands(unittest.TestCase):
     def setUp(self):
         Registry.reset()
         import importlib
-        import airbyte_cli.plugins.tags as _mod
+        import airbyte_api_cli.plugins.tags as _mod
         importlib.reload(_mod)
 
     def _run_handler(self, argv):
         import argparse
-        from airbyte_cli.plugins.tags.commands import register_commands, _handle
+        from airbyte_api_cli.plugins.tags.commands import register_commands, _handle
 
         parser = argparse.ArgumentParser()
         subparsers = parser.add_subparsers(dest="cmd")
@@ -103,7 +103,7 @@ class TestTagsCommands(unittest.TestCase):
         context = {"get_client": lambda: mock_client, "format": "json"}
 
         import argparse
-        from airbyte_cli.plugins.tags.commands import _handle
+        from airbyte_api_cli.plugins.tags.commands import _handle
 
         args = argparse.Namespace(action="list", workspace_id=None, limit=20, offset=0)
         rc = _handle(args, context)
@@ -116,7 +116,7 @@ class TestTagsCommands(unittest.TestCase):
         context = {"get_client": lambda: mock_client, "format": "json"}
 
         import argparse
-        from airbyte_cli.plugins.tags.commands import _handle
+        from airbyte_api_cli.plugins.tags.commands import _handle
 
         args = argparse.Namespace(action="get", tag_id="t1")
         rc = _handle(args, context)
@@ -129,7 +129,7 @@ class TestTagsCommands(unittest.TestCase):
         context = {"get_client": lambda: mock_client, "format": "json"}
 
         import argparse
-        from airbyte_cli.plugins.tags.commands import _handle
+        from airbyte_api_cli.plugins.tags.commands import _handle
 
         args = argparse.Namespace(action="create", name="urgent", color=None, workspace_id=None)
         rc = _handle(args, context)
@@ -142,7 +142,7 @@ class TestTagsCommands(unittest.TestCase):
         context = {"get_client": lambda: mock_client, "format": "json"}
 
         import argparse
-        from airbyte_cli.plugins.tags.commands import _handle
+        from airbyte_api_cli.plugins.tags.commands import _handle
 
         args = argparse.Namespace(action="update", tag_id="t1", name="new-name", color=None)
         rc = _handle(args, context)
@@ -157,7 +157,7 @@ class TestTagsCommands(unittest.TestCase):
         context = {"get_client": lambda: mock_client, "format": "json"}
 
         import argparse
-        from airbyte_cli.plugins.tags.commands import _handle
+        from airbyte_api_cli.plugins.tags.commands import _handle
 
         args = argparse.Namespace(action="delete", tag_id="t1")
         rc = _handle(args, context)
@@ -169,14 +169,14 @@ class TestTagsCommands(unittest.TestCase):
         context = {"get_client": lambda: mock_client, "format": "json"}
 
         import argparse
-        from airbyte_cli.plugins.tags.commands import _handle
+        from airbyte_api_cli.plugins.tags.commands import _handle
 
         args = argparse.Namespace(action=None)
         rc = _handle(args, context)
         self.assertEqual(rc, 1)
 
     def test_plugin_registered(self):
-        from airbyte_cli.plugins.tags import register
+        from airbyte_api_cli.plugins.tags import register
         Registry.reset()
         register()
         self.assertIn("tags", Registry.instance().all_plugins())

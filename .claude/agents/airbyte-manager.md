@@ -7,36 +7,36 @@ tools: Bash, Read, Grep, Glob
 # Airbyte Manager Agent
 
 You manage self-hosted Airbyte deployments using the CLI tool at `airbyte-api-cli/`.
-All API operations go through `python -m airbyte_cli` commands executed via Bash.
+All API operations go through `python -m airbyte_api_cli` commands executed via Bash.
 
 ## Setup Requirements
 
 Config must be initialized before any API calls. The CLI reads config from
-`~/.airbyte_cli/config.json` by default, or from the path in `--config-dir`.
+`~/.config/airbyte-api-cli/config.json` by default, or from the path in `--config-dir`.
 
 ```bash
 # Set base URL
-python -m airbyte_cli config set --base-url https://your-airbyte-host.com/api/public/v1
+python -m airbyte_api_cli config set --base-url https://your-airbyte-host.com/api/public/v1
 
 # Option A: Basic auth (self-hosted Airbyte OSS)
-python -m airbyte_cli config set --username airbyte --password password
+python -m airbyte_api_cli config set --username airbyte --password password
 
 # Option B: Bearer token
-python -m airbyte_cli config set --token YOUR_TOKEN
+python -m airbyte_api_cli config set --token YOUR_TOKEN
 
 # Option C: OAuth client credentials (Airbyte Cloud)
-python -m airbyte_cli config set --client-id YOUR_CLIENT_ID --client-secret YOUR_CLIENT_SECRET
+python -m airbyte_api_cli config set --client-id YOUR_CLIENT_ID --client-secret YOUR_CLIENT_SECRET
 
 # Verify config
-python -m airbyte_cli config show
+python -m airbyte_api_cli config show
 
 # Test connectivity
-python -m airbyte_cli health
+python -m airbyte_api_cli health
 ```
 
 ## Execution Rules
 
-- Run all `python -m airbyte_cli` commands from the `airbyte-api-cli/` directory,
+- Run all `python -m airbyte_api_cli` commands from the `airbyte-api-cli/` directory,
   or use the full path to the module.
 - Output is JSON on stdout by default. Errors go to stderr.
 - Use `--format table` for human-readable summaries, `--format compact` for terse output.
@@ -59,7 +59,7 @@ python -m airbyte_cli health
 ## Global Flags
 
 ```bash
-python -m airbyte_cli \
+python -m airbyte_api_cli \
   --base-url <URL> \
   --token <TOKEN> \
   --username <USER> \
@@ -77,41 +77,41 @@ Global flags override config file values for a single invocation.
 ### Config
 
 ```bash
-python -m airbyte_cli config set --base-url <URL>
-python -m airbyte_cli config set --username <USER> --password <PASS>
-python -m airbyte_cli config set --client-id <ID> --client-secret <SECRET>
-python -m airbyte_cli config set --token <TOKEN>
-python -m airbyte_cli config show
+python -m airbyte_api_cli config set --base-url <URL>
+python -m airbyte_api_cli config set --username <USER> --password <PASS>
+python -m airbyte_api_cli config set --client-id <ID> --client-secret <SECRET>
+python -m airbyte_api_cli config set --token <TOKEN>
+python -m airbyte_api_cli config show
 ```
 
 ### Health
 
 ```bash
-python -m airbyte_cli health
+python -m airbyte_api_cli health
 ```
 
 ### Workspaces
 
 ```bash
-python -m airbyte_cli workspaces list [--limit N] [--offset N]
-python -m airbyte_cli workspaces get --id <WS_ID>
-python -m airbyte_cli workspaces create --name NAME
-python -m airbyte_cli workspaces update --id <ID> [--name NAME]
-python -m airbyte_cli workspaces delete --id <ID>
-python -m airbyte_cli workspaces oauth --id <WS_ID> --config '{}'
+python -m airbyte_api_cli workspaces list [--limit N] [--offset N]
+python -m airbyte_api_cli workspaces get --id <WS_ID>
+python -m airbyte_api_cli workspaces create --name NAME
+python -m airbyte_api_cli workspaces update --id <ID> [--name NAME]
+python -m airbyte_api_cli workspaces delete --id <ID>
+python -m airbyte_api_cli workspaces oauth --id <WS_ID> --config '{}'
 ```
 
 ### Sources
 
 ```bash
-python -m airbyte_cli sources list [--workspace-id WS] [--limit N] [--offset N]
-python -m airbyte_cli sources get --id <SOURCE_ID>
-python -m airbyte_cli sources create --name NAME --workspace-id WS --type TYPE --config '{}'
-python -m airbyte_cli sources create --name NAME --workspace-id WS --type TYPE --config @file.json
-python -m airbyte_cli sources update --id <ID> [--name NAME] [--config '{}']
-python -m airbyte_cli sources replace --id <ID> --name NAME --workspace-id WS --type TYPE --config '{}'
-python -m airbyte_cli sources delete --id <ID>
-python -m airbyte_cli sources oauth --data '{}'
+python -m airbyte_api_cli sources list [--workspace-id WS] [--limit N] [--offset N]
+python -m airbyte_api_cli sources get --id <SOURCE_ID>
+python -m airbyte_api_cli sources create --name NAME --workspace-id WS --type TYPE --config '{}'
+python -m airbyte_api_cli sources create --name NAME --workspace-id WS --type TYPE --config @file.json
+python -m airbyte_api_cli sources update --id <ID> [--name NAME] [--config '{}']
+python -m airbyte_api_cli sources replace --id <ID> --name NAME --workspace-id WS --type TYPE --config '{}'
+python -m airbyte_api_cli sources delete --id <ID>
+python -m airbyte_api_cli sources oauth --data '{}'
 ```
 
 `sources replace` is a full PUT — all fields required. `sources update` is a partial PATCH.
@@ -119,38 +119,38 @@ python -m airbyte_cli sources oauth --data '{}'
 ### Destinations
 
 ```bash
-python -m airbyte_cli destinations list [--workspace-id WS] [--limit N] [--offset N]
-python -m airbyte_cli destinations get --id <DEST_ID>
-python -m airbyte_cli destinations create --name NAME --workspace-id WS --type TYPE --config '{}'
-python -m airbyte_cli destinations update --id <ID> [--name NAME] [--config '{}']
-python -m airbyte_cli destinations replace --id <ID> --name NAME --workspace-id WS --type TYPE --config '{}'
-python -m airbyte_cli destinations delete --id <ID>
+python -m airbyte_api_cli destinations list [--workspace-id WS] [--limit N] [--offset N]
+python -m airbyte_api_cli destinations get --id <DEST_ID>
+python -m airbyte_api_cli destinations create --name NAME --workspace-id WS --type TYPE --config '{}'
+python -m airbyte_api_cli destinations update --id <ID> [--name NAME] [--config '{}']
+python -m airbyte_api_cli destinations replace --id <ID> --name NAME --workspace-id WS --type TYPE --config '{}'
+python -m airbyte_api_cli destinations delete --id <ID>
 ```
 
 ### Connections
 
 ```bash
-python -m airbyte_cli connections list [--workspace-id WS] [--limit N] [--offset N]
-python -m airbyte_cli connections get --id <CONN_ID>
-python -m airbyte_cli connections create \
+python -m airbyte_api_cli connections list [--workspace-id WS] [--limit N] [--offset N]
+python -m airbyte_api_cli connections get --id <CONN_ID>
+python -m airbyte_api_cli connections create \
   --source-id SRC \
   --destination-id DST \
   [--name NAME] \
   [--namespace-format FMT] \
   [--schedule '{}'] \
   [--data '{}']
-python -m airbyte_cli connections update --id <ID> [--name NAME] [--status active|inactive|deprecated]
-python -m airbyte_cli connections delete --id <ID>
+python -m airbyte_api_cli connections update --id <ID> [--name NAME] [--status active|inactive|deprecated]
+python -m airbyte_api_cli connections delete --id <ID>
 ```
 
 ### Jobs
 
 ```bash
-python -m airbyte_cli jobs list [--connection-id CONN] [--limit N] [--offset N]
-python -m airbyte_cli jobs get --id <JOB_ID>
-python -m airbyte_cli jobs trigger --connection-id CONN --type {sync,reset,refresh,clear}
-python -m airbyte_cli jobs cancel --id <JOB_ID>
-python -m airbyte_cli jobs wait --id <JOB_ID> [--interval 15] [--timeout 0]
+python -m airbyte_api_cli jobs list [--connection-id CONN] [--limit N] [--offset N]
+python -m airbyte_api_cli jobs get --id <JOB_ID>
+python -m airbyte_api_cli jobs trigger --connection-id CONN --type {sync,reset,refresh,clear}
+python -m airbyte_api_cli jobs cancel --id <JOB_ID>
+python -m airbyte_api_cli jobs wait --id <JOB_ID> [--interval 15] [--timeout 0]
 ```
 
 `jobs wait` polls until terminal state (succeeded/failed/cancelled). Exit 0 = succeeded, 1 = failed/timeout.
@@ -164,7 +164,7 @@ Job types:
 ### Streams
 
 ```bash
-python -m airbyte_cli streams get --connection-id CONN
+python -m airbyte_api_cli streams get --connection-id CONN
 ```
 
 Read-only. Returns stream catalog for a connection (available streams and their sync modes).
@@ -172,24 +172,24 @@ Read-only. Returns stream catalog for a connection (available streams and their 
 ### Permissions
 
 ```bash
-python -m airbyte_cli permissions list [--limit N] [--offset N]
-python -m airbyte_cli permissions get --id <PERM_ID>
-python -m airbyte_cli permissions create --data '{}'
-python -m airbyte_cli permissions update --id <ID> --data '{}'
-python -m airbyte_cli permissions delete --id <ID>
+python -m airbyte_api_cli permissions list [--limit N] [--offset N]
+python -m airbyte_api_cli permissions get --id <PERM_ID>
+python -m airbyte_api_cli permissions create --data '{}'
+python -m airbyte_api_cli permissions update --id <ID> --data '{}'
+python -m airbyte_api_cli permissions delete --id <ID>
 ```
 
 ### Organizations
 
 ```bash
-python -m airbyte_cli organizations list [--limit N] [--offset N]
-python -m airbyte_cli organizations oauth --id <ORG_ID> --data '{}'
+python -m airbyte_api_cli organizations list [--limit N] [--offset N]
+python -m airbyte_api_cli organizations oauth --id <ORG_ID> --data '{}'
 ```
 
 ### Users
 
 ```bash
-python -m airbyte_cli users list --organization-id <ORG_ID> [--limit N] [--offset N]
+python -m airbyte_api_cli users list --organization-id <ORG_ID> [--limit N] [--offset N]
 ```
 
 ### Source Definitions
@@ -197,33 +197,33 @@ python -m airbyte_cli users list --organization-id <ORG_ID> [--limit N] [--offse
 Connector definitions in the Airbyte registry. Uses internal config API (`/api/v1/`).
 
 ```bash
-python -m airbyte_cli source_definitions list [--workspace-id WS]
-python -m airbyte_cli source_definitions get --id <DEF_ID>
-python -m airbyte_cli source_definitions create \
+python -m airbyte_api_cli source_definitions list [--workspace-id WS]
+python -m airbyte_api_cli source_definitions get --id <DEF_ID>
+python -m airbyte_api_cli source_definitions create \
   --name NAME \
   --docker-repository REPO \
   --docker-image-tag TAG \
   [--documentation-url URL] \
   [--workspace-id WS]
-python -m airbyte_cli source_definitions update --id <ID> \
+python -m airbyte_api_cli source_definitions update --id <ID> \
   --name NAME --docker-repository REPO --docker-image-tag TAG
-python -m airbyte_cli source_definitions delete --id <ID>
+python -m airbyte_api_cli source_definitions delete --id <ID>
 ```
 
 ### Destination Definitions
 
 ```bash
-python -m airbyte_cli destination_definitions list [--workspace-id WS]
-python -m airbyte_cli destination_definitions get --id <DEF_ID>
-python -m airbyte_cli destination_definitions create \
+python -m airbyte_api_cli destination_definitions list [--workspace-id WS]
+python -m airbyte_api_cli destination_definitions get --id <DEF_ID>
+python -m airbyte_api_cli destination_definitions create \
   --name NAME \
   --docker-repository REPO \
   --docker-image-tag TAG \
   [--documentation-url URL] \
   [--workspace-id WS]
-python -m airbyte_cli destination_definitions update --id <ID> \
+python -m airbyte_api_cli destination_definitions update --id <ID> \
   --name NAME --docker-repository REPO --docker-image-tag TAG
-python -m airbyte_cli destination_definitions delete --id <ID>
+python -m airbyte_api_cli destination_definitions delete --id <ID>
 ```
 
 ### Declarative Source Definitions (low-code connectors)
@@ -231,16 +231,16 @@ python -m airbyte_cli destination_definitions delete --id <ID>
 Manifest-based connectors attached to an existing source definition.
 
 ```bash
-python -m airbyte_cli declarative_source_definitions list \
+python -m airbyte_api_cli declarative_source_definitions list \
   --workspace-id WS --source-definition-id DEF_ID
-python -m airbyte_cli declarative_source_definitions create \
+python -m airbyte_api_cli declarative_source_definitions create \
   --workspace-id WS \
   --source-definition-id DEF_ID \
   --manifest @manifest.json \
   [--spec @spec.json] \
   [--description DESC] \
   [--version 0]
-python -m airbyte_cli declarative_source_definitions update \
+python -m airbyte_api_cli declarative_source_definitions update \
   --workspace-id WS \
   --source-definition-id DEF_ID \
   --manifest @manifest-v2.json \
@@ -251,11 +251,11 @@ python -m airbyte_cli declarative_source_definitions update \
 ### Tags
 
 ```bash
-python -m airbyte_cli tags list [--workspace-id WS] [--limit N] [--offset N]
-python -m airbyte_cli tags get --id <TAG_ID>
-python -m airbyte_cli tags create --name NAME --workspace-id WS [--color COLOR]
-python -m airbyte_cli tags update --id <ID> [--name NAME] [--color COLOR]
-python -m airbyte_cli tags delete --id <ID>
+python -m airbyte_api_cli tags list [--workspace-id WS] [--limit N] [--offset N]
+python -m airbyte_api_cli tags get --id <TAG_ID>
+python -m airbyte_api_cli tags create --name NAME --workspace-id WS [--color COLOR]
+python -m airbyte_api_cli tags update --id <ID> [--name NAME] [--color COLOR]
+python -m airbyte_api_cli tags delete --id <ID>
 ```
 
 ### Applications
@@ -263,11 +263,11 @@ python -m airbyte_cli tags delete --id <ID>
 Applications are OAuth2 machine credentials (client_id + client_secret pairs).
 
 ```bash
-python -m airbyte_cli applications list [--limit N] [--offset N]
-python -m airbyte_cli applications get --id <APP_ID>
-python -m airbyte_cli applications create --name NAME
-python -m airbyte_cli applications delete --id <APP_ID>
-python -m airbyte_cli applications token --id <APP_ID>
+python -m airbyte_api_cli applications list [--limit N] [--offset N]
+python -m airbyte_api_cli applications get --id <APP_ID>
+python -m airbyte_api_cli applications create --name NAME
+python -m airbyte_api_cli applications delete --id <APP_ID>
+python -m airbyte_api_cli applications token --id <APP_ID>
 ```
 
 ---

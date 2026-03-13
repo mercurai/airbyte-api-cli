@@ -13,13 +13,13 @@ disable-model-invocation: true
 If the user has a specific connection in mind:
 
 ```bash
-python -m airbyte_cli jobs list --connection-id <connection-id>
+python -m airbyte_api_cli jobs list --connection-id <connection-id>
 ```
 
 To see jobs across all connections:
 
 ```bash
-python -m airbyte_cli jobs list
+python -m airbyte_api_cli jobs list
 ```
 
 This returns a list of recent jobs with their IDs, types, statuses, and timestamps.
@@ -29,7 +29,7 @@ This returns a list of recent jobs with their IDs, types, statuses, and timestam
 If the user provides a job ID, or if you want details on a job from the list:
 
 ```bash
-python -m airbyte_cli jobs get --id <job-id>
+python -m airbyte_api_cli jobs get --id <job-id>
 ```
 
 ### 3. Present a status summary
@@ -52,7 +52,7 @@ If the job is in a `running` or `pending` state, ask the user if they want to po
 until the job completes. If yes, re-run:
 
 ```bash
-python -m airbyte_cli jobs get --id <job-id>
+python -m airbyte_api_cli jobs get --id <job-id>
 ```
 
 at a reasonable interval (every 10-30 seconds) and update the user on progress until

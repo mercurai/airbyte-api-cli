@@ -10,9 +10,9 @@ from http.client import HTTPMessage
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from airbyte_cli.core.auth import TokenManager
-from airbyte_cli.core.config import Config
-from airbyte_cli.core.exceptions import AuthError, ConfigError
+from airbyte_api_cli.core.auth import TokenManager
+from airbyte_api_cli.core.config import Config
+from airbyte_api_cli.core.exceptions import AuthError, ConfigError
 
 
 def _make_urlopen_response(body: dict) -> MagicMock:

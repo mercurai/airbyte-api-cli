@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from airbyte_cli.core.config import Config
+from airbyte_api_cli.core.config import Config
 
 
 class TestConfigFromEnv(unittest.TestCase):

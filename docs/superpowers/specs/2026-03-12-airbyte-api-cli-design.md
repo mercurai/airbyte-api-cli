@@ -27,8 +27,8 @@ Each API resource is a self-contained plugin. A thin core framework provides the
 
 ```
 airbyte-api-cli/
-├── airbyte_cli/
-│   ├── __main__.py                  # Entry: python -m airbyte_cli
+├── airbyte_api_cli/
+│   ├── __main__.py                  # Entry: python -m airbyte_api_cli
 │   ├── __init__.py
 │   ├── core/                        # Framework (~5 files)
 │   │   ├── __init__.py
@@ -109,13 +109,13 @@ Thin wrapper around `urllib.request`:
 - Retry with exponential backoff (3 attempts, 1s/2s/4s)
 - Timeout: 30s default, configurable
 - Raises typed exceptions: `ApiError`, `AuthError`, `NetworkError`, `ConfigError`
-- Sets `User-Agent: airbyte-cli/0.1.0` header on all requests
+- Sets `User-Agent: airbyte-api-cli/0.1.0` header on all requests
 
 #### auth.py — Token Management
 
 - Acquires token via `POST /applications/token` with body: `{"client_id": "...", "client_secret": "...", "grant_type": "client_credentials"}`
 - Response: `{"access_token": "...", "expires_in": 3600}`
-- Caches token to `~/.config/airbyte-cli/token.json` as: `{"access_token": "...", "expires_at": <unix_timestamp>}` where `expires_at = now + expires_in`
+- Caches token to `~/.config/airbyte-api-cli/token.json` as: `{"access_token": "...", "expires_at": <unix_timestamp>}` where `expires_at = now + expires_in`
 - On cache miss/expiry, reads `client_id`/`client_secret` from config module (not directly from disk)
 - Auto-refreshes on 401 response (one retry, then fail)
 - Supports direct token via `--token` flag or `AIRBYTE_TOKEN` env var (skips client_credentials flow)
@@ -125,7 +125,7 @@ Thin wrapper around `urllib.request`:
 Priority (highest wins):
 1. CLI flags (`--base-url`, `--token`, `--format`)
 2. Environment variables (`AIRBYTE_BASE_URL`, `AIRBYTE_CLIENT_ID`, `AIRBYTE_CLIENT_SECRET`, `AIRBYTE_TOKEN`)
-3. Config file (`~/.config/airbyte-cli/config.json`)
+3. Config file (`~/.config/airbyte-api-cli/config.json`)
 
 Config file schema:
 ```json

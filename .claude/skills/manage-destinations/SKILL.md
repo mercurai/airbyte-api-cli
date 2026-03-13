@@ -11,7 +11,7 @@ disable-model-invocation: true
 ### 1. Check API health
 
 ```bash
-python -m airbyte_cli health
+python -m airbyte_api_cli health
 ```
 
 If health check fails, stop and tell the user to verify their Airbyte instance is running
@@ -20,7 +20,7 @@ and that credentials/base URL are configured correctly.
 ### 2. List workspaces
 
 ```bash
-python -m airbyte_cli workspaces list
+python -m airbyte_api_cli workspaces list
 ```
 
 Ask the user to confirm which workspace ID to use if more than one is returned.
@@ -28,7 +28,7 @@ Ask the user to confirm which workspace ID to use if more than one is returned.
 ### 3. List available destination definitions
 
 ```bash
-python -m airbyte_cli destination_definitions list
+python -m airbyte_api_cli destination_definitions list
 ```
 
 Ask the user to select the destination type (e.g., BigQuery, Snowflake, Postgres, S3)
@@ -63,7 +63,7 @@ Example `config.json` for a Postgres destination:
 ### 5. Create the destination
 
 ```bash
-python -m airbyte_cli destinations create \
+python -m airbyte_api_cli destinations create \
   --name "<destination-name>" \
   --workspace-id "<workspace-id>" \
   --type "<destinationDefinitionId>" \
@@ -75,7 +75,7 @@ Note the `destinationId` returned in the response.
 ### 6. Verify the destination was created
 
 ```bash
-python -m airbyte_cli destinations get --id <new_destination_id>
+python -m airbyte_api_cli destinations get --id <new_destination_id>
 ```
 
 Confirm the destination status is valid and the connection test passes. If the test

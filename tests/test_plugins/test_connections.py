@@ -5,10 +5,10 @@ from __future__ import annotations
 import unittest
 from unittest.mock import MagicMock, patch
 
-from airbyte_cli.core.client import HttpClient
-from airbyte_cli.models.common import ApiResponse
-from airbyte_cli.plugins.connections.api import ConnectionsApi
-from airbyte_cli.plugins.connections.models import Connection
+from airbyte_api_cli.core.client import HttpClient
+from airbyte_api_cli.models.common import ApiResponse
+from airbyte_api_cli.plugins.connections.api import ConnectionsApi
+from airbyte_api_cli.plugins.connections.models import Connection
 
 
 class TestConnectionModel(unittest.TestCase):
@@ -145,7 +145,7 @@ class TestConnectionsCommands(unittest.TestCase):
         ctx = self._make_context()
         ctx["_client"].request.return_value = {"data": []}
         import argparse
-        from airbyte_cli.plugins.connections.commands import _handle
+        from airbyte_api_cli.plugins.connections.commands import _handle
 
         args = argparse.Namespace(
             action="list",
@@ -160,7 +160,7 @@ class TestConnectionsCommands(unittest.TestCase):
         ctx = self._make_context()
         ctx["_client"].request.return_value = {"connectionId": "c1"}
         import argparse
-        from airbyte_cli.plugins.connections.commands import _handle
+        from airbyte_api_cli.plugins.connections.commands import _handle
 
         args = argparse.Namespace(action="get", connection_id="c1")
         result = _handle(args, ctx)
@@ -170,7 +170,7 @@ class TestConnectionsCommands(unittest.TestCase):
         ctx = self._make_context()
         ctx["_client"].request.return_value = {"connectionId": "new"}
         import argparse
-        from airbyte_cli.plugins.connections.commands import _handle
+        from airbyte_api_cli.plugins.connections.commands import _handle
 
         args = argparse.Namespace(
             action="create",
@@ -195,7 +195,7 @@ class TestConnectionsCommands(unittest.TestCase):
         ctx = self._make_context()
         ctx["_client"].request.return_value = {"connectionId": "new"}
         import argparse
-        from airbyte_cli.plugins.connections.commands import _handle
+        from airbyte_api_cli.plugins.connections.commands import _handle
 
         args = argparse.Namespace(
             action="create",
@@ -217,7 +217,7 @@ class TestConnectionsCommands(unittest.TestCase):
         ctx = self._make_context()
         ctx["_client"].request.return_value = {"connectionId": "c1"}
         import argparse
-        from airbyte_cli.plugins.connections.commands import _handle
+        from airbyte_api_cli.plugins.connections.commands import _handle
 
         args = argparse.Namespace(
             action="update",
@@ -231,7 +231,7 @@ class TestConnectionsCommands(unittest.TestCase):
         ctx = self._make_context()
         ctx["_client"].request.return_value = {}
         import argparse
-        from airbyte_cli.plugins.connections.commands import _handle
+        from airbyte_api_cli.plugins.connections.commands import _handle
 
         args = argparse.Namespace(action="delete", connection_id="c1")
         result = _handle(args, ctx)
@@ -239,7 +239,7 @@ class TestConnectionsCommands(unittest.TestCase):
 
     def test_unknown_action_returns_error(self):
         import argparse
-        from airbyte_cli.plugins.connections.commands import _handle
+        from airbyte_api_cli.plugins.connections.commands import _handle
 
         ctx = self._make_context()
         args = argparse.Namespace(action=None)

@@ -5,10 +5,10 @@ from __future__ import annotations
 import unittest
 from unittest.mock import MagicMock
 
-from airbyte_cli.core.client import HttpClient
-from airbyte_cli.models.common import ApiResponse
-from airbyte_cli.plugins.jobs.api import JobsApi
-from airbyte_cli.plugins.jobs.models import Job
+from airbyte_api_cli.core.client import HttpClient
+from airbyte_api_cli.models.common import ApiResponse
+from airbyte_api_cli.plugins.jobs.api import JobsApi
+from airbyte_api_cli.plugins.jobs.models import Job
 
 
 class TestJobModel(unittest.TestCase):
@@ -136,7 +136,7 @@ class TestJobsCommands(unittest.TestCase):
         ctx = self._make_context()
         ctx["_client"].request.return_value = {"data": []}
         import argparse
-        from airbyte_cli.plugins.jobs.commands import _handle
+        from airbyte_api_cli.plugins.jobs.commands import _handle
 
         args = argparse.Namespace(
             action="list",
@@ -155,7 +155,7 @@ class TestJobsCommands(unittest.TestCase):
         ctx = self._make_context()
         ctx["_client"].request.return_value = {"data": []}
         import argparse
-        from airbyte_cli.plugins.jobs.commands import _handle
+        from airbyte_api_cli.plugins.jobs.commands import _handle
 
         args = argparse.Namespace(
             action="list",
@@ -178,7 +178,7 @@ class TestJobsCommands(unittest.TestCase):
         ctx = self._make_context()
         ctx["_client"].request.return_value = {"jobId": 1}
         import argparse
-        from airbyte_cli.plugins.jobs.commands import _handle
+        from airbyte_api_cli.plugins.jobs.commands import _handle
 
         args = argparse.Namespace(
             action="trigger",
@@ -195,7 +195,7 @@ class TestJobsCommands(unittest.TestCase):
         ctx = self._make_context()
         ctx["_client"].request.return_value = {"jobId": 5}
         import argparse
-        from airbyte_cli.plugins.jobs.commands import _handle
+        from airbyte_api_cli.plugins.jobs.commands import _handle
 
         args = argparse.Namespace(action="get", job_id="5")
         result = _handle(args, ctx)
@@ -205,7 +205,7 @@ class TestJobsCommands(unittest.TestCase):
         ctx = self._make_context()
         ctx["_client"].request.return_value = {}
         import argparse
-        from airbyte_cli.plugins.jobs.commands import _handle
+        from airbyte_api_cli.plugins.jobs.commands import _handle
 
         args = argparse.Namespace(action="cancel", job_id="5")
         result = _handle(args, ctx)
@@ -217,7 +217,7 @@ class TestJobsCommands(unittest.TestCase):
         ctx = self._make_context()
         ctx["_client"].request.return_value = {"jobId": "5", "status": "succeeded"}
         import argparse
-        from airbyte_cli.plugins.jobs.commands import _handle
+        from airbyte_api_cli.plugins.jobs.commands import _handle
 
         args = argparse.Namespace(action="wait", job_id="5", interval=1, timeout=0)
         result = _handle(args, ctx)
@@ -229,7 +229,7 @@ class TestJobsCommands(unittest.TestCase):
         ctx = self._make_context()
         ctx["_client"].request.return_value = {"jobId": "5", "status": "failed"}
         import argparse
-        from airbyte_cli.plugins.jobs.commands import _handle
+        from airbyte_api_cli.plugins.jobs.commands import _handle
 
         args = argparse.Namespace(action="wait", job_id="5", interval=1, timeout=0)
         result = _handle(args, ctx)
@@ -240,7 +240,7 @@ class TestJobsCommands(unittest.TestCase):
         ctx = self._make_context()
         ctx["_client"].request.return_value = {"jobId": "5", "status": "cancelled"}
         import argparse
-        from airbyte_cli.plugins.jobs.commands import _handle
+        from airbyte_api_cli.plugins.jobs.commands import _handle
 
         args = argparse.Namespace(action="wait", job_id="5", interval=1, timeout=0)
         result = _handle(args, ctx)
@@ -256,7 +256,7 @@ class TestJobsCommands(unittest.TestCase):
         ]
         import argparse
         from unittest.mock import patch
-        from airbyte_cli.plugins.jobs.commands import _handle
+        from airbyte_api_cli.plugins.jobs.commands import _handle
 
         args = argparse.Namespace(action="wait", job_id="5", interval=0, timeout=0)
         with patch("time.sleep"):
@@ -270,7 +270,7 @@ class TestJobsCommands(unittest.TestCase):
         ctx["_client"].request.return_value = {"jobId": "5", "status": "running"}
         import argparse
         from unittest.mock import patch
-        from airbyte_cli.plugins.jobs.commands import _handle
+        from airbyte_api_cli.plugins.jobs.commands import _handle
 
         args = argparse.Namespace(action="wait", job_id="5", interval=0, timeout=1)
         times = iter([100.0, 100.5, 101.5])
@@ -280,7 +280,7 @@ class TestJobsCommands(unittest.TestCase):
 
     def test_unknown_action_returns_error(self):
         import argparse
-        from airbyte_cli.plugins.jobs.commands import _handle
+        from airbyte_api_cli.plugins.jobs.commands import _handle
 
         ctx = self._make_context()
         args = argparse.Namespace(action=None)
@@ -291,7 +291,7 @@ class TestJobsCommands(unittest.TestCase):
         ctx = self._make_context()
         ctx["_client"].request.return_value = {"data": []}
         import argparse
-        from airbyte_cli.plugins.jobs.commands import _handle
+        from airbyte_api_cli.plugins.jobs.commands import _handle
 
         args = argparse.Namespace(
             action="list",

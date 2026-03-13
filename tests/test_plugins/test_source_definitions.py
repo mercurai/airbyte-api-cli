@@ -4,9 +4,9 @@ import argparse
 import unittest
 from unittest.mock import MagicMock
 
-from airbyte_cli.plugins.source_definitions.api import SourceDefinitionsApi
-from airbyte_cli.plugins.source_definitions.models import SourceDefinitionCreate
-from airbyte_cli.models.common import ApiResponse
+from airbyte_api_cli.plugins.source_definitions.api import SourceDefinitionsApi
+from airbyte_api_cli.plugins.source_definitions.models import SourceDefinitionCreate
+from airbyte_api_cli.models.common import ApiResponse
 
 
 def _ctx(mock_client):
@@ -125,7 +125,7 @@ class TestSourceDefinitionsApi(unittest.TestCase):
 
 class TestSourceDefinitionsCommands(unittest.TestCase):
     def test_list_command_registered(self):
-        from airbyte_cli.plugins.source_definitions.commands import register_commands
+        from airbyte_api_cli.plugins.source_definitions.commands import register_commands
 
         parser = argparse.ArgumentParser()
         sub = parser.add_subparsers()
@@ -134,7 +134,7 @@ class TestSourceDefinitionsCommands(unittest.TestCase):
         self.assertEqual(args.action, "list")
 
     def test_get_command_requires_id(self):
-        from airbyte_cli.plugins.source_definitions.commands import register_commands
+        from airbyte_api_cli.plugins.source_definitions.commands import register_commands
 
         parser = argparse.ArgumentParser()
         sub = parser.add_subparsers()
@@ -143,14 +143,14 @@ class TestSourceDefinitionsCommands(unittest.TestCase):
         self.assertEqual(args.definition_id, "sd1")
 
     def test_handle_no_action_returns_1(self):
-        from airbyte_cli.plugins.source_definitions.commands import _handle
+        from airbyte_api_cli.plugins.source_definitions.commands import _handle
 
         args = argparse.Namespace(action=None)
         result = _handle(args, _ctx(MagicMock()))
         self.assertEqual(result, 1)
 
     def test_handle_list_calls_api(self):
-        from airbyte_cli.plugins.source_definitions.commands import _handle
+        from airbyte_api_cli.plugins.source_definitions.commands import _handle
 
         mock_client = MagicMock()
         mock_client.request.return_value = {"sourceDefinitions": []}
@@ -162,7 +162,7 @@ class TestSourceDefinitionsCommands(unittest.TestCase):
         )
 
     def test_handle_get_calls_api(self):
-        from airbyte_cli.plugins.source_definitions.commands import _handle
+        from airbyte_api_cli.plugins.source_definitions.commands import _handle
 
         mock_client = MagicMock()
         mock_client.request.return_value = {"sourceDefinitionId": "sd1"}
@@ -176,7 +176,7 @@ class TestSourceDefinitionsCommands(unittest.TestCase):
         )
 
     def test_handle_create_calls_api(self):
-        from airbyte_cli.plugins.source_definitions.commands import _handle
+        from airbyte_api_cli.plugins.source_definitions.commands import _handle
 
         mock_client = MagicMock()
         mock_client.request.return_value = {"sourceDefinitionId": "sd2"}
@@ -195,7 +195,7 @@ class TestSourceDefinitionsCommands(unittest.TestCase):
         self.assertEqual(call_body["sourceDefinition"]["name"], "MySQL")
 
     def test_handle_delete_calls_api(self):
-        from airbyte_cli.plugins.source_definitions.commands import _handle
+        from airbyte_api_cli.plugins.source_definitions.commands import _handle
 
         mock_client = MagicMock()
         mock_client.request.return_value = {}

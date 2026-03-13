@@ -6,9 +6,9 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock
 
-from airbyte_cli.models.common import ApiResponse
+from airbyte_api_cli.models.common import ApiResponse
 
-from airbyte_cli.core.utils import resolve_json_arg, strip_none, paginate_all
+from airbyte_api_cli.core.utils import resolve_json_arg, strip_none, paginate_all
 
 
 class TestResolveJsonArg(unittest.TestCase):

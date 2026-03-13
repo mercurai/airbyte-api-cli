@@ -4,8 +4,8 @@ import argparse
 import unittest
 from unittest.mock import MagicMock
 
-from airbyte_cli.plugins.users.api import UsersApi
-from airbyte_cli.models.common import ApiResponse
+from airbyte_api_cli.plugins.users.api import UsersApi
+from airbyte_api_cli.models.common import ApiResponse
 
 
 def _ctx(mock_client):
@@ -56,7 +56,7 @@ class TestUsersApi(unittest.TestCase):
 
 class TestUsersCommands(unittest.TestCase):
     def test_list_command_registered(self):
-        from airbyte_cli.plugins.users.commands import register_commands
+        from airbyte_api_cli.plugins.users.commands import register_commands
 
         parser = argparse.ArgumentParser()
         sub = parser.add_subparsers()
@@ -66,7 +66,7 @@ class TestUsersCommands(unittest.TestCase):
         self.assertEqual(args.organization_id, "org1")
 
     def test_list_command_default_pagination(self):
-        from airbyte_cli.plugins.users.commands import register_commands
+        from airbyte_api_cli.plugins.users.commands import register_commands
 
         parser = argparse.ArgumentParser()
         sub = parser.add_subparsers()
@@ -76,14 +76,14 @@ class TestUsersCommands(unittest.TestCase):
         self.assertEqual(args.offset, 0)
 
     def test_handle_no_action_returns_1(self):
-        from airbyte_cli.plugins.users.commands import _handle
+        from airbyte_api_cli.plugins.users.commands import _handle
 
         args = argparse.Namespace(action=None)
         result = _handle(args, _ctx(MagicMock()))
         self.assertEqual(result, 1)
 
     def test_handle_list_calls_api(self):
-        from airbyte_cli.plugins.users.commands import _handle
+        from airbyte_api_cli.plugins.users.commands import _handle
 
         mock_client = MagicMock()
         mock_client.request.return_value = {"data": [{"userId": "u1"}]}

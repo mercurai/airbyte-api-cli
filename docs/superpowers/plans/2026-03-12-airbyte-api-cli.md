@@ -21,13 +21,13 @@ All plugins depend on the core. Must be completed first.
 ### Task 1: Project Scaffolding + Shared Models
 
 **Files:**
-- Create: `airbyte_cli/__init__.py`
-- Create: `airbyte_cli/__main__.py` (stub)
-- Create: `airbyte_cli/core/__init__.py`
-- Create: `airbyte_cli/core/exceptions.py`
-- Create: `airbyte_cli/models/__init__.py`
-- Create: `airbyte_cli/models/common.py`
-- Create: `airbyte_cli/plugins/__init__.py` (stub)
+- Create: `airbyte_api_cli/__init__.py`
+- Create: `airbyte_api_cli/__main__.py` (stub)
+- Create: `airbyte_api_cli/core/__init__.py`
+- Create: `airbyte_api_cli/core/exceptions.py`
+- Create: `airbyte_api_cli/models/__init__.py`
+- Create: `airbyte_api_cli/models/common.py`
+- Create: `airbyte_api_cli/plugins/__init__.py` (stub)
 - Create: `tests/__init__.py`
 - Create: `tests/test_models.py`
 
@@ -35,10 +35,10 @@ All plugins depend on the core. Must be completed first.
 
 ```bash
 cd D:/projects/ticket-projects/seatiq/airbyte/airbyte-api-cli
-mkdir -p airbyte_cli/core airbyte_cli/models airbyte_cli/plugins tests
+mkdir -p airbyte_api_cli/core airbyte_api_cli/models airbyte_api_cli/plugins tests
 ```
 
-- [ ] **Step 2: Create `airbyte_cli/__init__.py`**
+- [ ] **Step 2: Create `airbyte_api_cli/__init__.py`**
 
 ```python
 """Airbyte API CLI — manage self-hosted Airbyte via the REST API."""
@@ -46,7 +46,7 @@ mkdir -p airbyte_cli/core airbyte_cli/models airbyte_cli/plugins tests
 __version__ = "0.1.0"
 ```
 
-- [ ] **Step 3: Create `airbyte_cli/core/exceptions.py`**
+- [ ] **Step 3: Create `airbyte_api_cli/core/exceptions.py`**
 
 Custom exception hierarchy:
 
@@ -92,7 +92,7 @@ class NetworkError(AirbyteCliError):
         super().__init__(message, exit_code=4)
 ```
 
-- [ ] **Step 4: Create `airbyte_cli/models/common.py`**
+- [ ] **Step 4: Create `airbyte_api_cli/models/common.py`**
 
 Shared dataclasses used by all plugins:
 
@@ -126,33 +126,33 @@ class ErrorDetail:
         return {"error": self.error_type, "message": self.message, "status": self.status}
 ```
 
-- [ ] **Step 5: Create `airbyte_cli/models/__init__.py`**
+- [ ] **Step 5: Create `airbyte_api_cli/models/__init__.py`**
 
 ```python
 """Data models for the Airbyte CLI."""
 
-from airbyte_cli.models.common import ApiResponse, ErrorDetail
+from airbyte_api_cli.models.common import ApiResponse, ErrorDetail
 
 __all__ = ["ApiResponse", "ErrorDetail"]
 ```
 
-- [ ] **Step 6: Create `airbyte_cli/core/__init__.py`**
+- [ ] **Step 6: Create `airbyte_api_cli/core/__init__.py`**
 
 ```python
 """Core framework for the Airbyte CLI."""
 ```
 
-- [ ] **Step 7: Create stub `airbyte_cli/__main__.py`**
+- [ ] **Step 7: Create stub `airbyte_api_cli/__main__.py`**
 
 ```python
-"""Entry point for python -m airbyte_cli."""
+"""Entry point for python -m airbyte_api_cli."""
 
 import sys
 
 
 def main() -> int:
     """CLI entry point. Returns exit code."""
-    print("airbyte-cli v0.1.0", file=sys.stderr)
+    print("airbyte-api-cli v0.1.0", file=sys.stderr)
     return 0
 
 
@@ -160,7 +160,7 @@ if __name__ == "__main__":
     sys.exit(main())
 ```
 
-- [ ] **Step 8: Create stub `airbyte_cli/plugins/__init__.py`**
+- [ ] **Step 8: Create stub `airbyte_api_cli/plugins/__init__.py`**
 
 ```python
 """Plugin auto-discovery. Imports all plugin packages to trigger registration."""
@@ -173,7 +173,7 @@ if __name__ == "__main__":
 
 import unittest
 
-from airbyte_cli.models.common import ApiResponse, ErrorDetail
+from airbyte_api_cli.models.common import ApiResponse, ErrorDetail
 
 
 class TestApiResponse(unittest.TestCase):
@@ -221,7 +221,7 @@ git add -A && git commit -m "feat: project scaffolding, shared models, exception
 ### Task 2: Configuration Module
 
 **Files:**
-- Create: `airbyte_cli/core/config.py`
+- Create: `airbyte_api_cli/core/config.py`
 - Create: `tests/test_config.py`
 
 - [ ] **Step 1: Write tests for config**
@@ -236,7 +236,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from airbyte_cli.core.config import Config
+from airbyte_api_cli.core.config import Config
 
 
 class TestConfigFromEnv(unittest.TestCase):
@@ -299,7 +299,7 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-- [ ] **Step 2: Implement `airbyte_cli/core/config.py`**
+- [ ] **Step 2: Implement `airbyte_api_cli/core/config.py`**
 
 ```python
 """Configuration management with CLI > env > file priority."""
@@ -313,7 +313,7 @@ from pathlib import Path
 from typing import Any
 
 
-DEFAULT_CONFIG_DIR = Path.home() / ".config" / "airbyte-cli"
+DEFAULT_CONFIG_DIR = Path.home() / ".config" / "airbyte-api-cli"
 
 
 @dataclass
@@ -402,7 +402,7 @@ Expected: All pass
 - [ ] **Step 4: Commit**
 
 ```bash
-git add airbyte_cli/core/config.py tests/test_config.py
+git add airbyte_api_cli/core/config.py tests/test_config.py
 git commit -m "feat: configuration module with CLI > env > file priority"
 ```
 
@@ -411,7 +411,7 @@ git commit -m "feat: configuration module with CLI > env > file priority"
 ### Task 3: HTTP Client
 
 **Files:**
-- Create: `airbyte_cli/core/client.py`
+- Create: `airbyte_api_cli/core/client.py`
 - Create: `tests/test_client.py`
 
 - [ ] **Step 1: Write tests for HTTP client**
@@ -430,7 +430,7 @@ Key test cases:
 - `test_network_error_on_timeout` — verifies NetworkError
 - `test_response_json_parsed` — verifies JSON response deserialized
 
-- [ ] **Step 2: Implement `airbyte_cli/core/client.py`**
+- [ ] **Step 2: Implement `airbyte_api_cli/core/client.py`**
 
 urllib.request wrapper with:
 - `HttpClient.__init__(self, base_url, token, timeout=30)`
@@ -451,7 +451,7 @@ Expected: All pass
 - [ ] **Step 4: Commit**
 
 ```bash
-git add airbyte_cli/core/client.py tests/test_client.py
+git add airbyte_api_cli/core/client.py tests/test_client.py
 git commit -m "feat: HTTP client with retry, auth injection, error handling"
 ```
 
@@ -460,7 +460,7 @@ git commit -m "feat: HTTP client with retry, auth injection, error handling"
 ### Task 4: Auth Module
 
 **Files:**
-- Create: `airbyte_cli/core/auth.py`
+- Create: `airbyte_api_cli/core/auth.py`
 - Create: `tests/test_auth.py`
 
 - [ ] **Step 1: Write tests for auth**
@@ -473,7 +473,7 @@ Key test cases:
 - `test_direct_token_skips_credentials_flow` — verifies --token/AIRBYTE_TOKEN bypasses auth
 - `test_auth_error_on_invalid_credentials` — verifies AuthError raised on 401 from token endpoint
 
-- [ ] **Step 2: Implement `airbyte_cli/core/auth.py`**
+- [ ] **Step 2: Implement `airbyte_api_cli/core/auth.py`**
 
 ```python
 """Token acquisition, caching, and refresh for Airbyte API."""
@@ -502,7 +502,7 @@ Expected: All pass
 - [ ] **Step 4: Commit**
 
 ```bash
-git add airbyte_cli/core/auth.py tests/test_auth.py
+git add airbyte_api_cli/core/auth.py tests/test_auth.py
 git commit -m "feat: token management with caching and auto-refresh"
 ```
 
@@ -511,9 +511,9 @@ git commit -m "feat: token management with caching and auto-refresh"
 ### Task 5: Plugin Registry + Output + Utils
 
 **Files:**
-- Create: `airbyte_cli/core/registry.py`
-- Create: `airbyte_cli/core/output.py`
-- Create: `airbyte_cli/core/utils.py`
+- Create: `airbyte_api_cli/core/registry.py`
+- Create: `airbyte_api_cli/core/output.py`
+- Create: `airbyte_api_cli/core/utils.py`
 - Create: `tests/test_registry.py`
 - Create: `tests/test_output.py`
 - Create: `tests/test_utils.py`
@@ -522,7 +522,7 @@ git commit -m "feat: token management with caching and auto-refresh"
 
 Test plugin registration and command dispatch.
 
-- [ ] **Step 2: Implement `airbyte_cli/core/registry.py`**
+- [ ] **Step 2: Implement `airbyte_api_cli/core/registry.py`**
 
 ```python
 """Plugin registry — maps command names to handler functions."""
@@ -542,7 +542,7 @@ class Registry:
 
 Test JSON, table, and compact formatters.
 
-- [ ] **Step 4: Implement `airbyte_cli/core/output.py`**
+- [ ] **Step 4: Implement `airbyte_api_cli/core/output.py`**
 
 ```python
 """Output formatters — JSON (default), table, compact."""
@@ -558,7 +558,7 @@ def error(error_type: str, message: str, status: int = 0) -> None: ...
 
 Test `resolve_json_arg` with inline JSON and @file.json.
 
-- [ ] **Step 6: Implement `airbyte_cli/core/utils.py`**
+- [ ] **Step 6: Implement `airbyte_api_cli/core/utils.py`**
 
 ```python
 """Shared utilities."""
@@ -582,7 +582,7 @@ Expected: All pass
 - [ ] **Step 8: Commit**
 
 ```bash
-git add airbyte_cli/core/registry.py airbyte_cli/core/output.py airbyte_cli/core/utils.py tests/test_registry.py tests/test_output.py tests/test_utils.py
+git add airbyte_api_cli/core/registry.py airbyte_api_cli/core/output.py airbyte_api_cli/core/utils.py tests/test_registry.py tests/test_output.py tests/test_utils.py
 git commit -m "feat: plugin registry, output formatters, shared utils"
 ```
 
@@ -591,10 +591,10 @@ git commit -m "feat: plugin registry, output formatters, shared utils"
 ### Task 6: Entry Point + Config Command
 
 **Files:**
-- Modify: `airbyte_cli/__main__.py`
-- Modify: `airbyte_cli/plugins/__init__.py`
-- Create: `airbyte_cli/plugins/config_cmd/__init__.py`
-- Create: `airbyte_cli/plugins/config_cmd/commands.py`
+- Modify: `airbyte_api_cli/__main__.py`
+- Modify: `airbyte_api_cli/plugins/__init__.py`
+- Create: `airbyte_api_cli/plugins/config_cmd/__init__.py`
+- Create: `airbyte_api_cli/plugins/config_cmd/commands.py`
 
 - [ ] **Step 1: Implement full `__main__.py`**
 
@@ -611,10 +611,10 @@ Import all plugin packages to trigger registration.
 
 - [ ] **Step 4: Test end-to-end**
 
-Run: `cd D:/projects/ticket-projects/seatiq/airbyte/airbyte-api-cli && python -m airbyte_cli --help`
+Run: `cd D:/projects/ticket-projects/seatiq/airbyte/airbyte-api-cli && python -m airbyte_api_cli --help`
 Expected: Shows help with available commands
 
-Run: `python -m airbyte_cli config show`
+Run: `python -m airbyte_api_cli config show`
 Expected: Shows current config (empty defaults)
 
 - [ ] **Step 5: Commit**
@@ -638,7 +638,7 @@ Every CRUD plugin follows this structure. Agents implementing individual plugins
 ```python
 """<Resource> plugin — registers commands with the CLI registry."""
 
-from airbyte_cli.core.registry import Registry
+from airbyte_api_cli.core.registry import Registry
 
 from .commands import register_commands
 
@@ -681,8 +681,8 @@ class <Resource>:
 from __future__ import annotations
 from typing import Any
 
-from airbyte_cli.core.client import HttpClient
-from airbyte_cli.models.common import ApiResponse
+from airbyte_api_cli.core.client import HttpClient
+from airbyte_api_cli.models.common import ApiResponse
 
 
 class <Resource>Api:
@@ -718,8 +718,8 @@ from __future__ import annotations
 import argparse
 from typing import Any
 
-from airbyte_cli.core.output import output, error
-from airbyte_cli.core.utils import resolve_json_arg
+from airbyte_api_cli.core.output import output, error
+from airbyte_api_cli.core.utils import resolve_json_arg
 
 
 def register_commands(subparsers: argparse._SubParsersAction, context: dict) -> None:
@@ -783,10 +783,10 @@ def _handle(args: argparse.Namespace, context: dict) -> int:
 ### Task 7: Sources Plugin
 
 **Files:**
-- Create: `airbyte_cli/plugins/sources/__init__.py`
-- Create: `airbyte_cli/plugins/sources/models.py`
-- Create: `airbyte_cli/plugins/sources/api.py`
-- Create: `airbyte_cli/plugins/sources/commands.py`
+- Create: `airbyte_api_cli/plugins/sources/__init__.py`
+- Create: `airbyte_api_cli/plugins/sources/models.py`
+- Create: `airbyte_api_cli/plugins/sources/api.py`
+- Create: `airbyte_api_cli/plugins/sources/commands.py`
 - Create: `tests/test_plugins/test_sources.py`
 
 Full CRUD + oauth. Uses PATCH for update, PUT for replace.
@@ -984,8 +984,8 @@ No models needed. Just commands.py.
 ### Task 22: Wire All Plugins + Integration Test
 
 **Files:**
-- Modify: `airbyte_cli/plugins/__init__.py` — import all 15 plugins + config_cmd
-- Modify: `airbyte_cli/__main__.py` — ensure proper error handling, exit codes
+- Modify: `airbyte_api_cli/plugins/__init__.py` — import all 15 plugins + config_cmd
+- Modify: `airbyte_api_cli/__main__.py` — ensure proper error handling, exit codes
 - Create: `tests/test_integration.py` — end-to-end CLI parsing tests
 
 - [ ] **Step 1: Update plugins/__init__.py to import all plugins**
@@ -993,7 +993,7 @@ No models needed. Just commands.py.
 ```python
 """Plugin auto-discovery."""
 
-from airbyte_cli.plugins import (
+from airbyte_api_cli.plugins import (
     config_cmd,
     sources,
     destinations,
@@ -1020,11 +1020,11 @@ Test full CLI flow: parse args → resolve config → build client → dispatch 
 - [ ] **Step 3: Test all commands respond to --help**
 
 ```bash
-python -m airbyte_cli --help
-python -m airbyte_cli sources --help
-python -m airbyte_cli sources list --help
-python -m airbyte_cli connections create --help
-python -m airbyte_cli jobs trigger --help
+python -m airbyte_api_cli --help
+python -m airbyte_api_cli sources --help
+python -m airbyte_api_cli sources list --help
+python -m airbyte_api_cli connections create --help
+python -m airbyte_api_cli jobs trigger --help
 ```
 
 - [ ] **Step 4: Run full test suite**

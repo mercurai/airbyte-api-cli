@@ -4,8 +4,8 @@ import argparse
 import unittest
 from unittest.mock import MagicMock
 
-from airbyte_cli.plugins.organizations.api import OrganizationsApi
-from airbyte_cli.models.common import ApiResponse
+from airbyte_api_cli.plugins.organizations.api import OrganizationsApi
+from airbyte_api_cli.models.common import ApiResponse
 
 
 def _ctx(mock_client):
@@ -68,7 +68,7 @@ class TestOrganizationsApi(unittest.TestCase):
 
 class TestOrganizationsCommands(unittest.TestCase):
     def test_list_command_registered(self):
-        from airbyte_cli.plugins.organizations.commands import register_commands
+        from airbyte_api_cli.plugins.organizations.commands import register_commands
 
         parser = argparse.ArgumentParser()
         sub = parser.add_subparsers()
@@ -77,7 +77,7 @@ class TestOrganizationsCommands(unittest.TestCase):
         self.assertEqual(args.action, "list")
 
     def test_list_command_default_pagination(self):
-        from airbyte_cli.plugins.organizations.commands import register_commands
+        from airbyte_api_cli.plugins.organizations.commands import register_commands
 
         parser = argparse.ArgumentParser()
         sub = parser.add_subparsers()
@@ -87,7 +87,7 @@ class TestOrganizationsCommands(unittest.TestCase):
         self.assertEqual(args.offset, 0)
 
     def test_oauth_command_requires_id_and_data(self):
-        from airbyte_cli.plugins.organizations.commands import register_commands
+        from airbyte_api_cli.plugins.organizations.commands import register_commands
 
         parser = argparse.ArgumentParser()
         sub = parser.add_subparsers()
@@ -98,14 +98,14 @@ class TestOrganizationsCommands(unittest.TestCase):
         self.assertEqual(args.organization_id, "org1")
 
     def test_handle_no_action_returns_1(self):
-        from airbyte_cli.plugins.organizations.commands import _handle
+        from airbyte_api_cli.plugins.organizations.commands import _handle
 
         args = argparse.Namespace(action=None)
         result = _handle(args, _ctx(MagicMock()))
         self.assertEqual(result, 1)
 
     def test_handle_list_calls_api(self):
-        from airbyte_cli.plugins.organizations.commands import _handle
+        from airbyte_api_cli.plugins.organizations.commands import _handle
 
         mock_client = MagicMock()
         mock_client.request.return_value = {"data": []}
@@ -117,7 +117,7 @@ class TestOrganizationsCommands(unittest.TestCase):
         )
 
     def test_handle_oauth_calls_api(self):
-        from airbyte_cli.plugins.organizations.commands import _handle
+        from airbyte_api_cli.plugins.organizations.commands import _handle
 
         mock_client = MagicMock()
         mock_client.request.return_value = {"status": "ok"}

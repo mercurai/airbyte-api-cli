@@ -16,7 +16,7 @@ the /manage-sources or /manage-destinations skill first.
 ### 1. List available sources
 
 ```bash
-python -m airbyte_cli sources list
+python -m airbyte_api_cli sources list
 ```
 
 Ask the user to identify the `sourceId` they want to connect from.
@@ -24,7 +24,7 @@ Ask the user to identify the `sourceId` they want to connect from.
 ### 2. List available destinations
 
 ```bash
-python -m airbyte_cli destinations list
+python -m airbyte_api_cli destinations list
 ```
 
 Ask the user to identify the `destinationId` they want to connect to.
@@ -42,7 +42,7 @@ and what sync mode to use per stream:
 If editing an existing connection, retrieve its current stream config first:
 
 ```bash
-python -m airbyte_cli streams get --connection-id <connection_id>
+python -m airbyte_api_cli streams get --connection-id <connection_id>
 ```
 
 ### 4. Determine sync schedule
@@ -56,7 +56,7 @@ Ask the user how often to sync. Common options:
 ### 5. Create the connection
 
 ```bash
-python -m airbyte_cli connections create \
+python -m airbyte_api_cli connections create \
   --source-id "<source-id>" \
   --destination-id "<destination-id>" \
   --name "<connection-name>" \
@@ -71,7 +71,7 @@ Note the `connectionId` returned in the response.
 If the user wants to run an immediate sync after creating the connection:
 
 ```bash
-python -m airbyte_cli jobs trigger --connection-id <connection-id> --type sync
+python -m airbyte_api_cli jobs trigger --connection-id <connection-id> --type sync
 ```
 
 Note the `jobId` returned. Use /sync-status to monitor progress.

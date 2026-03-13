@@ -2,7 +2,7 @@
 
 import unittest
 
-from airbyte_cli.models.common import ApiResponse, ErrorDetail
+from airbyte_api_cli.models.common import ApiResponse, ErrorDetail
 
 
 class TestApiResponse(unittest.TestCase):
@@ -48,28 +48,28 @@ class TestErrorDetail(unittest.TestCase):
 
 class TestExceptions(unittest.TestCase):
     def test_api_error_has_exit_code_1(self):
-        from airbyte_cli.core.exceptions import ApiError
+        from airbyte_api_cli.core.exceptions import ApiError
         err = ApiError("Not found", status_code=404)
         self.assertEqual(err.exit_code, 1)
         self.assertEqual(err.status_code, 404)
 
     def test_auth_error_has_exit_code_2(self):
-        from airbyte_cli.core.exceptions import AuthError
+        from airbyte_api_cli.core.exceptions import AuthError
         err = AuthError()
         self.assertEqual(err.exit_code, 2)
 
     def test_config_error_has_exit_code_3(self):
-        from airbyte_cli.core.exceptions import ConfigError
+        from airbyte_api_cli.core.exceptions import ConfigError
         err = ConfigError("Missing base_url")
         self.assertEqual(err.exit_code, 3)
 
     def test_network_error_has_exit_code_4(self):
-        from airbyte_cli.core.exceptions import NetworkError
+        from airbyte_api_cli.core.exceptions import NetworkError
         err = NetworkError("Connection refused")
         self.assertEqual(err.exit_code, 4)
 
     def test_api_error_stores_response_body(self):
-        from airbyte_cli.core.exceptions import ApiError
+        from airbyte_api_cli.core.exceptions import ApiError
         body = {"detail": "resource not found"}
         err = ApiError("Not found", status_code=404, response_body=body)
         self.assertEqual(err.response_body, body)

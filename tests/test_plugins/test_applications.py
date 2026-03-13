@@ -5,10 +5,10 @@ from __future__ import annotations
 import unittest
 from unittest.mock import MagicMock
 
-from airbyte_cli.core.registry import Registry
-from airbyte_cli.models.common import ApiResponse
-from airbyte_cli.plugins.applications.api import ApplicationsApi
-from airbyte_cli.plugins.applications.models import Application
+from airbyte_api_cli.core.registry import Registry
+from airbyte_api_cli.models.common import ApiResponse
+from airbyte_api_cli.plugins.applications.api import ApplicationsApi
+from airbyte_api_cli.plugins.applications.models import Application
 
 
 class TestApplicationModel(unittest.TestCase):
@@ -88,7 +88,7 @@ class TestApplicationsCommands(unittest.TestCase):
     def setUp(self):
         Registry.reset()
         import importlib
-        import airbyte_cli.plugins.applications as _mod
+        import airbyte_api_cli.plugins.applications as _mod
         importlib.reload(_mod)
 
     def _make_context(self, mock_client):
@@ -96,7 +96,7 @@ class TestApplicationsCommands(unittest.TestCase):
 
     def test_list_command(self):
         import argparse
-        from airbyte_cli.plugins.applications.commands import _handle
+        from airbyte_api_cli.plugins.applications.commands import _handle
 
         mock_client = MagicMock()
         mock_client.request.return_value = {"data": []}
@@ -109,7 +109,7 @@ class TestApplicationsCommands(unittest.TestCase):
 
     def test_get_command(self):
         import argparse
-        from airbyte_cli.plugins.applications.commands import _handle
+        from airbyte_api_cli.plugins.applications.commands import _handle
 
         mock_client = MagicMock()
         mock_client.request.return_value = {"applicationId": "app1"}
@@ -120,7 +120,7 @@ class TestApplicationsCommands(unittest.TestCase):
 
     def test_create_command(self):
         import argparse
-        from airbyte_cli.plugins.applications.commands import _handle
+        from airbyte_api_cli.plugins.applications.commands import _handle
 
         mock_client = MagicMock()
         mock_client.request.return_value = {"applicationId": "app2"}
@@ -133,7 +133,7 @@ class TestApplicationsCommands(unittest.TestCase):
 
     def test_delete_command(self):
         import argparse
-        from airbyte_cli.plugins.applications.commands import _handle
+        from airbyte_api_cli.plugins.applications.commands import _handle
 
         mock_client = MagicMock()
         mock_client.request.return_value = {}
@@ -144,7 +144,7 @@ class TestApplicationsCommands(unittest.TestCase):
 
     def test_token_command(self):
         import argparse
-        from airbyte_cli.plugins.applications.commands import _handle
+        from airbyte_api_cli.plugins.applications.commands import _handle
 
         mock_client = MagicMock()
         mock_client.request.return_value = {"access_token": "tok"}
@@ -155,14 +155,14 @@ class TestApplicationsCommands(unittest.TestCase):
 
     def test_no_action_returns_error(self):
         import argparse
-        from airbyte_cli.plugins.applications.commands import _handle
+        from airbyte_api_cli.plugins.applications.commands import _handle
 
         args = argparse.Namespace(action=None)
         rc = _handle(args, self._make_context(MagicMock()))
         self.assertEqual(rc, 1)
 
     def test_plugin_registered(self):
-        from airbyte_cli.plugins.applications import register
+        from airbyte_api_cli.plugins.applications import register
         Registry.reset()
         register()
         self.assertIn("applications", Registry.instance().all_plugins())

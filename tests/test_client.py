@@ -8,8 +8,8 @@ import urllib.request
 from http.client import HTTPMessage
 from unittest.mock import MagicMock, patch, call
 
-from airbyte_cli.core.client import HttpClient
-from airbyte_cli.core.exceptions import ApiError, AuthError, NetworkError
+from airbyte_api_cli.core.client import HttpClient
+from airbyte_api_cli.core.exceptions import ApiError, AuthError, NetworkError
 
 
 def _make_response(body: dict, status: int = 200) -> MagicMock:
@@ -89,7 +89,7 @@ class TestHttpClientRequestBuilding(unittest.TestCase):
         mock_urlopen.return_value = _make_response({})
         self.client.request("GET", "/sources")
         req = mock_urlopen.call_args[0][0]
-        self.assertIn("airbyte-cli/", req.get_header("User-agent"))
+        self.assertIn("airbyte-api-cli/", req.get_header("User-agent"))
 
     @patch("urllib.request.urlopen")
     def test_response_json_parsed(self, mock_urlopen):

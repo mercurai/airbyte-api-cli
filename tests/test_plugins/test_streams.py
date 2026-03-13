@@ -6,9 +6,9 @@ import argparse
 import unittest
 from unittest.mock import MagicMock, patch
 
-from airbyte_cli.core.registry import Registry
-from airbyte_cli.plugins.streams import api
-from airbyte_cli.plugins.streams.commands import register_commands, _handle
+from airbyte_api_cli.core.registry import Registry
+from airbyte_api_cli.plugins.streams import api
+from airbyte_api_cli.plugins.streams.commands import register_commands, _handle
 
 
 def _make_client(return_value=None):
@@ -49,7 +49,7 @@ class TestStreamsCommands(unittest.TestCase):
             for k, v in extra_attrs.items():
                 setattr(args, k, v)
         ctx = _make_context(client)
-        with patch("airbyte_cli.plugins.streams.commands.output") as mock_out:
+        with patch("airbyte_api_cli.plugins.streams.commands.output") as mock_out:
             code = _handle(args, ctx)
         return code, mock_out
 
