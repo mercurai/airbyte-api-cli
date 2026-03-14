@@ -17,3 +17,11 @@ from airbyte_api_cli.plugins import source_definitions  # noqa: F401
 from airbyte_api_cli.plugins import destination_definitions  # noqa: F401
 from airbyte_api_cli.plugins import declarative_source_definitions  # noqa: F401
 from airbyte_api_cli.plugins import builder_projects  # noqa: F401
+from airbyte_api_cli.plugins import check_connection  # noqa: F401
+from airbyte_api_cli.plugins import discover_schema  # noqa: F401
+from airbyte_api_cli.plugins import state  # noqa: F401
+from airbyte_api_cli.plugins import attempt_info  # noqa: F401
+from airbyte_api_cli.plugins import definition_specifications  # noqa: F401
+from airbyte_api_cli.plugins import web_backend  # noqa: F401
+from airbyte_api_cli.plugins import operations  # noqa: F401
+from airbyte_api_cli.plugins import notifications  # noqa: F401
