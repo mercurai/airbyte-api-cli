@@ -6,7 +6,7 @@ Includes a [Claude Code](https://claude.ai/claude-code) agent definition and 6 s
 
 ## Features
 
-- **Full API coverage** — 15 resource types, ~60 endpoints, every CRUD operation the Airbyte public API exposes
+- **Full API coverage** — 16 resource types, ~67 endpoints, every CRUD operation the Airbyte public API exposes
 - **Zero dependencies** — stdlib only (`urllib.request`, `argparse`, `json`, `dataclasses`, `pathlib`)
 - **Plugin architecture** — each resource is a self-contained package; adding a new one requires no core changes
 - **Agent-friendly** — JSON to stdout, errors to stderr, deterministic exit codes
@@ -474,6 +474,44 @@ python -m airbyte_api_cli declarative_source_definitions update \
 
 Both `--manifest` and `--spec` accept inline JSON strings or `@file.json` file references.
 
+### Builder Projects
+
+Manage Connector Builder projects — create, edit, test, and publish low-code source connectors via the internal API.
+
+```bash
+# List builder projects in a workspace
+python -m airbyte_api_cli builder_projects list --workspace-id <WS_ID>
+
+# Get a project with its manifest
+python -m airbyte_api_cli builder_projects get --id <PROJECT_ID> --workspace-id <WS_ID>
+
+# Create a new builder project
+python -m airbyte_api_cli builder_projects create --name "My API Connector" --workspace-id <WS_ID> [--manifest @manifest.json]
+
+# Update a project's name and/or manifest
+python -m airbyte_api_cli builder_projects update --id <PROJECT_ID> --workspace-id <WS_ID> [--name "New Name"] [--manifest @updated-manifest.json]
+
+# Delete a builder project
+python -m airbyte_api_cli builder_projects delete --id <PROJECT_ID> --workspace-id <WS_ID>
+
+# Publish a project as a usable source connector
+python -m airbyte_api_cli builder_projects publish --id <PROJECT_ID> --workspace-id <WS_ID> \
+  --manifest @manifest.json --spec @spec.json [--name "Published Connector"] [--description "..."] [--version 0]
+
+# Test-read a stream (using project's draft manifest)
+python -m airbyte_api_cli builder_projects read-stream --workspace-id <WS_ID> \
+  --project-id <PROJECT_ID> --stream-name "users" --config @testing-values.json \
+  [--record-limit 10] [--page-limit 1]
+
+# Test-read a stream (using explicit manifest)
+python -m airbyte_api_cli builder_projects read-stream --workspace-id <WS_ID> \
+  --manifest @manifest.json --stream-name "users" --config @testing-values.json
+```
+
+`publish` creates a new source connector from the builder project, making it available for creating source instances. It handles both first-time publish and version updates.
+
+`read-stream` simulates the "Test" button in the Connector Builder UI — it sends a request through the manifest's stream configuration against the real API and returns sample records. Supply either `--project-id` (uses the project's saved draft manifest) or `--manifest` (uses an explicit manifest file).
+
 ### Tags
 
 Organize resources with workspace-scoped tags.
@@ -652,6 +690,7 @@ airbyte-api-cli/
 │       ├── source_definitions/
 │       ├── destination_definitions/
 │       ├── declarative_source_definitions/
+│       ├── builder_projects/
 │       ├── tags/
 │       ├── applications/
 │       ├── health/
@@ -744,7 +783,7 @@ python -m unittest tests.test_plugins.test_sources.TestSourcesApi.test_list_retu
 | Layer | Test files | What's tested |
 |-------|-----------|---------------|
 | Core | `test_client.py`, `test_auth.py`, `test_config.py`, `test_output.py`, `test_utils.py`, `test_registry.py`, `test_models.py` | HTTP request building, retry logic, auth token flow, config priority, formatters, JSON arg resolution |
-| Plugins | `test_plugins/test_*.py` (15 files) | Command parsing, API call construction, model serialization, plugin registration |
+| Plugins | `test_plugins/test_*.py` (16 files, including builder_projects) | Command parsing, API call construction, model serialization, plugin registration |
 
 ---
 

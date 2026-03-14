@@ -16,3 +16,4 @@ from airbyte_api_cli.plugins import users  # noqa: F401
 from airbyte_api_cli.plugins import source_definitions  # noqa: F401
 from airbyte_api_cli.plugins import destination_definitions  # noqa: F401
 from airbyte_api_cli.plugins import declarative_source_definitions  # noqa: F401
+from airbyte_api_cli.plugins import builder_projects  # noqa: F401

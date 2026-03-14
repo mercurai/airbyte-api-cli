@@ -43,8 +43,8 @@ python -m airbyte_api_cli health
 - Use `--config @file.json` to pass large config payloads from a file instead of inline JSON.
 - Token auto-refreshes on 401 — no manual refresh needed.
 - Use `--all` on list commands to auto-paginate through all results, or `--limit`/`--offset` for manual pagination.
-- Definition endpoints (source_definitions, destination_definitions, declarative_source_definitions)
-  use the internal config API and do not support pagination.
+- Definition endpoints (source_definitions, destination_definitions, declarative_source_definitions,
+  builder_projects) use the internal config API and do not support pagination.
 
 ## Exit Codes
 
@@ -248,6 +248,45 @@ python -m airbyte_api_cli declarative_source_definitions update \
   [--version 1]
 ```
 
+### Builder Projects
+
+Workspace-scoped development containers for low-code source connectors.
+Uses the internal config API (`/api/v1/`).
+
+```bash
+python -m airbyte_api_cli builder_projects list --workspace-id <WS_ID>
+python -m airbyte_api_cli builder_projects get --id <PROJECT_ID> --workspace-id <WS_ID>
+python -m airbyte_api_cli builder_projects create \
+  --name NAME \
+  --workspace-id <WS_ID> \
+  [--manifest @manifest.json]
+python -m airbyte_api_cli builder_projects update \
+  --id <PROJECT_ID> \
+  --workspace-id <WS_ID> \
+  [--name NAME] \
+  [--manifest @manifest.json]
+python -m airbyte_api_cli builder_projects delete --id <PROJECT_ID> --workspace-id <WS_ID>
+python -m airbyte_api_cli builder_projects publish \
+  --id <PROJECT_ID> \
+  --workspace-id <WS_ID> \
+  --manifest @manifest.json \
+  --spec @spec.json \
+  [--name NAME] \
+  [--description DESC] \
+  [--version 0]
+python -m airbyte_api_cli builder_projects read-stream \
+  --workspace-id <WS_ID> \
+  --stream-name NAME \
+  --config @testing-values.json \
+  [--project-id <PROJECT_ID>] \
+  [--manifest @manifest.json] \
+  [--record-limit N] \
+  [--page-limit N]
+```
+
+`publish` converts a builder project into a usable source connector definition (handles first-time publish and version updates).
+`read-stream` simulates the Connector Builder UI "Test" button. Supply either `--project-id` (uses saved draft manifest) or `--manifest` (uses an explicit file).
+
 ### Tags
 
 ```bash
@@ -298,6 +337,10 @@ Managed via the internal config API (`/api/v1/`), not the public API.
 **Declarative Source Definition**: A low-code connector defined by a YAML manifest
 attached to an existing source definition. Workspace-scoped. Requires both
 `--workspace-id` and `--source-definition-id` for all operations.
+
+**Builder Project**: A workspace-scoped development container for a low-code source connector.
+Holds a draft manifest that can be edited and tested before publishing. Publishing converts
+a builder project into a usable source connector definition available for creating source instances.
 
 **Permission**: Grants a user a role within a workspace or organization.
 
