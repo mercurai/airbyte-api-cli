@@ -131,6 +131,7 @@ def main(argv: list[str] | None = None) -> int:
             base_url=config.base_url,
             token=_get_token(),
             timeout=config.timeout,
+            verify_ssl=config.verify_ssl,
         )
 
     def get_config_client():
@@ -153,6 +154,7 @@ def main(argv: list[str] | None = None) -> int:
             base_url=config_base,
             token=_get_token(),
             timeout=config.timeout,
+            verify_ssl=config.verify_ssl,
         )
 
     context["get_client"] = get_client

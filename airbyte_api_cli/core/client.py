@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import ssl
 import time
 import urllib.error
 import urllib.parse
@@ -19,7 +20,7 @@ _RETRY_DELAYS = [1, 2, 4]
 class HttpClient:
     """Thin HTTP client for the Airbyte public API."""
 
-    def __init__(self, base_url: str, token: str, timeout: int = 30) -> None:
+    def __init__(self, base_url: str, token: str, timeout: int = 30, verify_ssl: bool = True) -> None:
         self.base_url = base_url.rstrip("/")
         # token may be a raw token (Bearer assumed) or a full header value
         if token.startswith(("Bearer ", "Basic ")):
@@ -27,6 +28,10 @@ class HttpClient:
         else:
             self._auth_header = f"Bearer {token}"
         self.timeout = timeout
+        self._ssl_context = None if verify_ssl else ssl.create_default_context()
+        if self._ssl_context:
+            self._ssl_context.check_hostname = False
+            self._ssl_context.verify_mode = ssl.CERT_NONE
 
     def request(
         self,
@@ -76,7 +81,7 @@ class HttpClient:
         """Execute a single HTTP request attempt."""
         req = urllib.request.Request(url, data=data, headers=headers, method=method)
         try:
-            with urllib.request.urlopen(req, timeout=self.timeout) as resp:
+            with urllib.request.urlopen(req, timeout=self.timeout, context=self._ssl_context) as resp:
                 raw = resp.read().decode("utf-8")
                 if not raw:
                     return {}

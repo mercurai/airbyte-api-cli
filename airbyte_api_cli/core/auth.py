@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import json
+import ssl
 import time
 import urllib.error
 import urllib.parse
@@ -96,8 +97,13 @@ class TokenManager:
             headers={"Content-Type": "application/json", "Accept": "application/json"},
             method="POST",
         )
+        ssl_ctx = None
+        if not getattr(self._config, "verify_ssl", True):
+            ssl_ctx = ssl.create_default_context()
+            ssl_ctx.check_hostname = False
+            ssl_ctx.verify_mode = ssl.CERT_NONE
         try:
-            with urllib.request.urlopen(req, timeout=self._config.timeout) as resp:
+            with urllib.request.urlopen(req, timeout=self._config.timeout, context=ssl_ctx) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
         except urllib.error.HTTPError as exc:
             raise AuthError(f"Token acquisition failed (HTTP {exc.code})")

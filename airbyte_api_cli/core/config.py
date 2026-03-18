@@ -25,6 +25,7 @@ class Config:
     default_workspace_id: str = ""
     default_format: str = "json"
     timeout: int = 30
+    verify_ssl: bool = True
 
     @classmethod
     def load(
@@ -68,6 +69,7 @@ class Config:
             default_workspace_id=merged.get("default_workspace_id", ""),
             default_format=merged.get("default_format", "json"),
             timeout=int(merged.get("timeout", 30)),
+            verify_ssl=bool(merged.get("verify_ssl", True)),
         )
 
     @staticmethod
@@ -94,6 +96,7 @@ class Config:
             "default_workspace_id": self.default_workspace_id,
             "default_format": self.default_format,
             "timeout": self.timeout,
+            "verify_ssl": self.verify_ssl,
         }
         path.write_text(json.dumps(data, indent=2), encoding="utf-8")
 
