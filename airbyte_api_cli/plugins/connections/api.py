@@ -27,6 +27,17 @@ class ConnectionsApi:
         return self.client.request("POST", "connections", body=data)
 
     def update(self, connection_id: str, data: dict[str, Any]) -> dict[str, Any]:
+        # Guard against the Airbyte v1 PATCH /connections/{id} footgun: when
+        # the body omits "status", the server silently resets it to "active".
+        # See mercurai/airbyte-mercurai#7 for the March 20 zombie-sync incident.
+        # Always GET the current connection and merge its status if the caller
+        # didn't supply one. Callers can still force a status change by
+        # including "status" explicitly.
+        if "status" not in data:
+            current = self.client.request("GET", f"connections/{connection_id}")
+            current_status = current.get("status")
+            if current_status:
+                data = {**data, "status": current_status}
         return self.client.request("PATCH", f"connections/{connection_id}", body=data)
 
     def delete(self, connection_id: str) -> None:

@@ -111,12 +111,41 @@ class TestConnectionsApi(unittest.TestCase):
         self.assertEqual(result["connectionId"], "conn_new")
 
     def test_update_patches_correct_endpoint(self):
+        # When the caller supplies an explicit status, no GET is needed —
+        # the PATCH goes straight through with the supplied body.
         self.client.request.return_value = {"connectionId": "conn_1", "status": "inactive"}
         result = self.api.update("conn_1", {"status": "inactive"})
         self.client.request.assert_called_once_with(
             "PATCH", "connections/conn_1", body={"status": "inactive"}
         )
         self.assertEqual(result["status"], "inactive")
+
+    def test_update_preserves_status_when_omitted(self):
+        # Regression for mercurai/airbyte-mercurai#7: omitting status from a
+        # rename PATCH must not reset the connection to active. The guard
+        # GETs the current connection first and merges its status into the
+        # PATCH body.
+        self.client.request.side_effect = [
+            {"connectionId": "conn_1", "name": "old", "status": "inactive"},
+            {"connectionId": "conn_1", "name": "new", "status": "inactive"},
+        ]
+        result = self.api.update("conn_1", {"name": "new"})
+        self.assertEqual(self.client.request.call_count, 2)
+        self.client.request.assert_any_call("GET", "connections/conn_1")
+        self.client.request.assert_any_call(
+            "PATCH",
+            "connections/conn_1",
+            body={"name": "new", "status": "inactive"},
+        )
+        self.assertEqual(result["status"], "inactive")
+
+    def test_update_explicit_status_overrides_current(self):
+        # Explicit status in the body wins — no GET, no merge.
+        self.client.request.return_value = {"connectionId": "conn_1", "status": "active"}
+        self.api.update("conn_1", {"name": "x", "status": "active"})
+        self.client.request.assert_called_once_with(
+            "PATCH", "connections/conn_1", body={"name": "x", "status": "active"}
+        )
 
     def test_delete_calls_delete_endpoint(self):
         self.client.request.return_value = {}
